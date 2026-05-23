@@ -6,6 +6,8 @@
     <Project Path="samples/04-SessionForking/04-SessionForking.csproj" />
     <Project Path="samples/05-Memory/05-Memory.csproj" />
     <Project Path="samples/06-Rag/06-Rag.csproj" />
+    <Project Path="samples/07-Workflow/07-Workflow.csproj" />
+    <Project Path="samples/08-HITL/08-HITL.csproj" />
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/Sentirum.Agent.Abstractions/Sentirum.Agent.Abstractions.csproj" />
@@ -25,6 +27,8 @@
     <Project Path="src/Sentirum.Agent.Memory.Redis/Sentirum.Agent.Memory.Redis.csproj" />
     <Project Path="src/Sentirum.Agent.Memory.EntityFrameworkCore/Sentirum.Agent.Memory.EntityFrameworkCore.csproj" />
     <Project Path="src/Sentirum.Agent.Context/Sentirum.Agent.Context.csproj" />
+    <Project Path="src/Sentirum.Agent.Workflows/Sentirum.Agent.Workflows.csproj" />
+    <Project Path="src/Sentirum.Agent.Workflows.HumanInTheLoop/Sentirum.Agent.Workflows.HumanInTheLoop.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Sentirum.Agent.Abstractions.Tests/Sentirum.Agent.Abstractions.Tests.csproj" />
@@ -34,5 +38,7 @@
     <Project Path="tests/Sentirum.Agent.Tools.Tests/Sentirum.Agent.Tools.Tests.csproj" />
     <Project Path="tests/Sentirum.Agent.Memory.Tests/Sentirum.Agent.Memory.Tests.csproj" />
     <Project Path="tests/Sentirum.Agent.Context.Tests/Sentirum.Agent.Context.Tests.csproj" />
+    <Project Path="tests/Sentirum.Agent.Workflows.Tests/Sentirum.Agent.Workflows.Tests.csproj" />
+    <Project Path="tests/Sentirum.Agent.Workflows.HumanInTheLoop.Tests/Sentirum.Agent.Workflows.HumanInTheLoop.Tests.csproj" />
   </Folder>
 </Solution>

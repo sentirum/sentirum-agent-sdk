@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>Sentirum.Agent.Workflows</PackageId>
+    <Description>Sentirum agent SDK — ergonomic wrapper around Microsoft Agent Framework's Workflows engine. Sequential, concurrent, conditional, and handoff orchestration on top of ISentirumAgent.</Description>
+    <PackageTags>$(PackageTags);workflows;orchestration;sequential;parallel;handoff</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Sentirum.Agent.Abstractions\Sentirum.Agent.Abstractions.csproj" />
+    <PackageReference Include="Microsoft.Agents.AI.Workflows" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+  </ItemGroup>
+
+</Project>

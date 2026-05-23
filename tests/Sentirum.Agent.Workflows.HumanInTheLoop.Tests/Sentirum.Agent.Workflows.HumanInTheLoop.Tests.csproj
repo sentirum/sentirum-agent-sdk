@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Sentirum.Agent.Workflows\Sentirum.Agent.Workflows.csproj" />
+    <ProjectReference Include="..\..\src\Sentirum.Agent.Workflows.HumanInTheLoop\Sentirum.Agent.Workflows.HumanInTheLoop.csproj" />
+  </ItemGroup>
+
+</Project>

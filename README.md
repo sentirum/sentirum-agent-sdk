@@ -74,6 +74,7 @@ dotnet test   Sentirum.Agent.slnx -c Release --no-build
 | **M3.5** ✅ | Hardening pass after the `gpt-5.5` code review: thread-safe forks, direction-safe merges with deep-cloned messages, agent disposal, tool-signature validation, options validation, streaming-cancellation observability, ADR-0001–0006. |
 | **M4** ✅ | Memory (`InMemory` / `Redis` / `EntityFrameworkCore`) + context providers (`WithUserMemory`, `WithAmbientInstructions`, `WithKnowledgeBase`) + samples `05-Memory` and `06-Rag` verified live against Z.AI / GLM-4.6. |
 | **M4.5** ✅ | Hardening pass after the `glm-5` code review: strict `MemoryPartition.Validate()`, EF Core upsert via `ExecuteUpdateAsync` + side-effect-free `GetAsync`, Redis envelope via `JsonSerializer` (surrogate-safe), multi-tenant `WithUserMemory(Func<...>)` + `WithSessionMemory(Func<...>)`, ADR-0007–0010, +15 tests. |
+| **M5** ✅ | Workflows + Human-in-the-Loop: `Sentirum.Agent.Workflows` (Sequential / Concurrent / Handoff / UseWorkflow over MAF `Microsoft.Agents.AI.Workflows` 1.6.2) + `Sentirum.Agent.Workflows.HumanInTheLoop` (typed `ApprovalGate`, `ApprovalDispatcher`, `IApprovalChannel` / `InMemoryApprovalChannel`). Samples `07-Workflow` (concurrent + sequential triage live against Z.AI / GLM-4.6) and `08-HITL` (refund approval pipeline with policy-bot reviewer) plus ADR-0011 and +16 tests. |
 | **M2** | Custom providers (`SentirumChatClientBase`, OpenAI-compatible, Anthropic, Ollama). |
 | **M3** | Tool registry + tree sessions + MCP. |
 | **M4** | Memory + context providers + RAG. |

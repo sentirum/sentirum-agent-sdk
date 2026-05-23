@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Sentirum.Samples.HITL</RootNamespace>
+    <AssemblyName>Sentirum.Samples.HITL</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Sentirum.Agent.Workflows\Sentirum.Agent.Workflows.csproj" />
+    <ProjectReference Include="..\..\src\Sentirum.Agent.Workflows.HumanInTheLoop\Sentirum.Agent.Workflows.HumanInTheLoop.csproj" />
+  </ItemGroup>
+
+</Project>

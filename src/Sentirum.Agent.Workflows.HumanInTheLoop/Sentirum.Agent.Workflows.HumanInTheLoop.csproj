@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>Sentirum.Agent.Workflows.HumanInTheLoop</PackageId>
+    <Description>Sentirum agent SDK — human-in-the-loop approval gates for Sentirum.Agent.Workflows. Build refund / replacement / discount flows that pause on a request port and resume once a human approves or rejects.</Description>
+    <PackageTags>$(PackageTags);workflows;hitl;approval;human-in-the-loop</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Sentirum.Agent.Workflows\Sentirum.Agent.Workflows.csproj" />
+    <PackageReference Include="Microsoft.Agents.AI.Workflows" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+  </ItemGroup>
+
+</Project>
