@@ -8,6 +8,7 @@
     <Project Path="samples/06-Rag/06-Rag.csproj" />
     <Project Path="samples/07-Workflow/07-Workflow.csproj" />
     <Project Path="samples/08-HITL/08-HITL.csproj" />
+    <Project Path="samples/09-CustomerSupport/09-CustomerSupport.csproj" />
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/Sentirum.Agent.Abstractions/Sentirum.Agent.Abstractions.csproj" />
