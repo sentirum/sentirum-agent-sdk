@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Sentirum.Agent.Tests</RootNamespace>
+    <AssemblyName>Sentirum.Agent.Abstractions.Tests</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Sentirum.Agent.Abstractions\Sentirum.Agent.Abstractions.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/samples/">
+    <Project Path="samples/01-HelloAgent/01-HelloAgent.csproj" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/Sentirum.Agent.Abstractions/Sentirum.Agent.Abstractions.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Sentirum.Agent.Abstractions.Tests/Sentirum.Agent.Abstractions.Tests.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,32 @@
+<Project>
+
+  <!--
+    Tüm test projeleri için ortak ayarlar.
+    Bir proje "*.Tests" pattern'iyle adlandırılırsa otomatik test profili uygulanır.
+  -->
+  <PropertyGroup Condition="$(MSBuildProjectName.EndsWith('.Tests'))">
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CA1707;CA2007;CA1812;CA1515</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(IsTestProject)' == 'true'">
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+    <PackageReference Include="coverlet.collector" />
+    <PackageReference Include="FluentAssertions" />
+    <PackageReference Include="NSubstitute" />
+  </ItemGroup>
+
+  <!--
+    Sample projeleri için ortak ayarlar.
+    Bir proje "samples/" altındaysa packable değildir.
+  -->
+  <PropertyGroup Condition="$(MSBuildProjectDirectory.Contains('samples'))">
+    <IsPackable>false</IsPackable>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+
+</Project>

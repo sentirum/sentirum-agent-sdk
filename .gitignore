@@ -1,0 +1,53 @@
+# .NET
+bin/
+obj/
+out/
+artifacts/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+.vscode/
+.idea/
+
+# Build
+[Dd]ebug/
+[Rr]elease/
+[Ee]xpress/
+*.pdb
+
+# Test
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+*.coverage
+*.coveragexml
+coverage.cobertura.xml
+coverage.opencover.xml
+TestResults/
+
+# NuGet
+*.nupkg
+*.snupkg
+.nuget/
+packages/
+project.lock.json
+project.fragment.lock.json
+
+# Rider
+*.DotSettings.user
+
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Env / secrets
+*.env
+.env.*
+appsettings.*.local.json
+appsettings.Development.json
+*.pfx
+secrets.json
+
+# Tooling
+.tools/

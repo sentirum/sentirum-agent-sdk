@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Sentirum.Samples.HelloAgent</RootNamespace>
+    <AssemblyName>Sentirum.Samples.HelloAgent</AssemblyName>
+    <UserSecretsId>sentirum-hello-agent</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Sentirum.Agent.Abstractions\Sentirum.Agent.Abstractions.csproj" />
+  </ItemGroup>
+
+</Project>

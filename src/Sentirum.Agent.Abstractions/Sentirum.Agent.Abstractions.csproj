@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Sentirum.Agent</RootNamespace>
+    <AssemblyName>Sentirum.Agent.Abstractions</AssemblyName>
+    <Description>Core abstractions, contracts, and interfaces for the Sentirum Agent SDK. Built on top of Microsoft Agent Framework and Microsoft.Extensions.AI.</Description>
+    <PackageId>Sentirum.Agent.Abstractions</PackageId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!--
+      We take a dependency on the full Microsoft.Agents.AI package (rather than
+      just its abstractions) because the Sentirum abstractions expose the
+      underlying AIAgent / AgentThread types directly to advanced consumers.
+      Same reason for the full Microsoft.Extensions.AI package: builders such
+      as ChatClientBuilder live in the main package, not Abstractions.
+    -->
+    <PackageReference Include="Microsoft.Agents.AI" />
+    <PackageReference Include="Microsoft.Extensions.AI" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+  </ItemGroup>
+
+</Project>
