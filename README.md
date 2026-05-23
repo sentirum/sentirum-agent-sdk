@@ -29,7 +29,7 @@ opinionated runtime on top:
 
 ## Packages
 
-21 packages on NuGet. See the [planning document](docs/planning.md) for the
+22 packages on NuGet. See the [planning document](docs/planning.md) for the
 full package matrix and roadmap.
 
 | Package | Purpose |
@@ -44,6 +44,7 @@ full package matrix and roadmap.
 | `Sentirum.Agent.Providers.Ollama` | Local LLM via OllamaSharp. |
 | `Sentirum.Agent.Providers.Custom` | `SentirumChatClientBase` — base class with retry / timeout / structured logging for fully custom providers. |
 | `Sentirum.Agent.Providers.ZAI` | Z.AI (GLM) convenience: `UseZAI(model, key, protocol)` + thinking mode helpers. |
+| `Sentirum.Agent.Providers.MiniMax` | MiniMax dual-protocol: OpenAI-compatible (`api.minimax.io/v1`) and Anthropic-compatible (`api.minimax.io/anthropic`). Models: MiniMax-M2.7. |
 | `Sentirum.Agent.Tools.Core` | `[Tool]` attribute + reflection-based discovery + `WithTools<T>()`. |
 | `Sentirum.Agent.Sessions.Tree` | Tree-based sessions: fork / merge / walk / visualize. |
 | `Sentirum.Agent.Memory.Abstractions` | `ISentirumMemoryStore` + `MemoryScope` (Global / Agent / User / Session). |
