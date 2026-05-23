@@ -29,7 +29,7 @@ opinionated runtime on top:
 
 ## Packages
 
-19 packages on NuGet. See the [planning document](docs/planning.md) for the
+21 packages on NuGet. See the [planning document](docs/planning.md) for the
 full package matrix and roadmap.
 
 | Package | Purpose |
@@ -51,6 +51,8 @@ full package matrix and roadmap.
 | `Sentirum.Agent.Memory.Redis` | Distributed memory store backed by Redis. |
 | `Sentirum.Agent.Memory.EntityFrameworkCore` | SQL memory store backed by EF Core. |
 | `Sentirum.Agent.Context` | `WithUserMemory()`, `WithAmbientInstructions()`, `WithKnowledgeBase()` context providers over the MAF `MessageAIContextProvider` pipeline. |
+| `Sentirum.Agent.Embeddings.Abstractions` | `IEmbeddingGenerator`, `IVectorStore<TKey>`, `IVectorSearch<TKey>`, `VectorRecord<TKey>`, `ScoredVector<TKey>`. |
+| `Sentirum.Agent.Embeddings` | `InMemoryVectorStore<TKey>` (cosine similarity), `SentirumKnowledgeBase<TKey>` (RAG bridge), DI registration helpers. |
 | `Sentirum.Agent.Workflows` | Sequential / Concurrent / Handoff / UseWorkflow wrappers over MAF `Microsoft.Agents.AI.Workflows` 1.6.2. |
 | `Sentirum.Agent.Workflows.HumanInTheLoop` | Typed `ApprovalGate`, `ApprovalDispatcher`, `IApprovalChannel` / `InMemoryApprovalChannel`. |
 
