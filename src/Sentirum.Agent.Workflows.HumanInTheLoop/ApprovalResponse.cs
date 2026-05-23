@@ -31,10 +31,16 @@ namespace Sentirum.Agent.Workflows.HumanInTheLoop;
 /// this pending request. Enables out-of-order response routing without
 /// relying on a FIFO queue per gate.
 /// </param>
+/// <param name="Context">
+/// The context dictionary from the original <see cref="ApprovalRequest"/>.
+/// Carried through so the projector can access request-scoped data
+/// (amount, customer id, etc.) without needing a run-scoped cache.
+/// </param>
 public sealed record ApprovalResponse(
     string GateId,
     bool Approved,
     string? Reviewer = null,
     string? Comment = null,
     string? CorrelationId = null,
-    string? RequestId = null);
+    string? RequestId = null,
+    IReadOnlyDictionary<string, string>? Context = null);

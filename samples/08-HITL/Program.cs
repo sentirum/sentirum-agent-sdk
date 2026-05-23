@@ -117,14 +117,18 @@ var reviewer = Task.Run(async () =>
             await channel.RejectAsync(
                 request.GateId,
                 reviewer: "policy-bot",
-                comment: $"Tutar (${amount}) limit üstünde");
+                comment: $"Tutar (${amount}) limit üstünde",
+                requestId: request.RequestId,
+                context: request.Context);
         }
         else
         {
             await channel.ApproveAsync(
                 request.GateId,
                 reviewer: "policy-bot",
-                comment: "Politika dahilinde, otomatik onay");
+                comment: "Politika dahilinde, otomatik onay",
+                requestId: request.RequestId,
+                context: request.Context);
         }
     }
 });

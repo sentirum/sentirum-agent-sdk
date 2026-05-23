@@ -69,15 +69,15 @@ public sealed class InMemoryApprovalChannel : IApprovalChannel, IAsyncDisposable
     /// Reviewer-side helper that approves the gate identified by
     /// <paramref name="gateId"/>.
     /// </summary>
-    public Task ApproveAsync(string gateId, string? reviewer = null, string? comment = null, string? requestId = null)
-        => RespondAsync(new ApprovalResponse(gateId, Approved: true, reviewer, comment, RequestId: requestId));
+    public Task ApproveAsync(string gateId, string? reviewer = null, string? comment = null, string? requestId = null, IReadOnlyDictionary<string, string>? context = null)
+        => RespondAsync(new ApprovalResponse(gateId, Approved: true, reviewer, comment, RequestId: requestId, Context: context));
 
     /// <summary>
     /// Reviewer-side helper that rejects the gate identified by
     /// <paramref name="gateId"/>.
     /// </summary>
-    public Task RejectAsync(string gateId, string? reviewer = null, string? comment = null, string? requestId = null)
-        => RespondAsync(new ApprovalResponse(gateId, Approved: false, reviewer, comment, RequestId: requestId));
+    public Task RejectAsync(string gateId, string? reviewer = null, string? comment = null, string? requestId = null, IReadOnlyDictionary<string, string>? context = null)
+        => RespondAsync(new ApprovalResponse(gateId, Approved: false, reviewer, comment, RequestId: requestId, Context: context));
 
     /// <summary>
     /// Pushes a raw response into the channel. Useful when the reviewer

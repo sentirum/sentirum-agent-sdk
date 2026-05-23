@@ -149,12 +149,33 @@ public static class ApprovalDispatcher
     {
         await foreach (var response in channel.ConsumeAsync(cancellationToken).ConfigureAwait(false))
         {
-            // Out-of-order responses are safe because we route by the
-            // MAF RequestId the dispatcher stashed when the gate fired,
-            // not by a FIFO queue per gate.
+            // Prefer RequestId routing (safe for out-of-order and
+            // multiple firings of the same gate). Fall back to GateId
+            // for backward compatibility with channel implementations
+            // that do not echo the RequestId.
+            ExternalRequest? externalRequest = null;
             var requestId = response.RequestId ?? string.Empty;
-            if (string.IsNullOrEmpty(requestId)
-                || !pending.TryRemove(requestId, out var externalRequest))
+
+            if (!string.IsNullOrEmpty(requestId))
+            {
+                pending.TryRemove(requestId, out externalRequest);
+            }
+            else
+            {
+                // Legacy path: find the first pending request for this
+                // gate. Safe only when the gate fires once per run.
+                var match = pending
+                    .FirstOrDefault(kvp =>
+                        kvp.Value.TryGetDataAs(out ApprovalRequest? ar)
+                        && ar is not null
+                        && ar.GateId == response.GateId);
+                if (!string.IsNullOrEmpty(match.Key))
+                {
+                    pending.TryRemove(match.Key, out externalRequest);
+                }
+            }
+
+            if (externalRequest is null)
             {
                 // Late or unmatched response — the workflow may have
                 // already halted or the response carries an id from a

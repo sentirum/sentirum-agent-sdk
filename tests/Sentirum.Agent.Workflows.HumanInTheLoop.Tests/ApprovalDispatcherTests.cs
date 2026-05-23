@@ -27,7 +27,7 @@ public class ApprovalDispatcherTests
         {
             await foreach (var req in channel.WatchRequestsAsync())
             {
-                await channel.ApproveAsync(req.GateId, reviewer: "ops", comment: "lgtm");
+                await channel.ApproveAsync(req.GateId, reviewer: "ops", comment: "lgtm", requestId: req.RequestId, context: req.Context);
                 break;
             }
         });
@@ -54,7 +54,7 @@ public class ApprovalDispatcherTests
         {
             await foreach (var req in channel.WatchRequestsAsync())
             {
-                await channel.RejectAsync(req.GateId, reviewer: "ops", comment: "too high");
+                await channel.RejectAsync(req.GateId, reviewer: "ops", comment: "too high", requestId: req.RequestId, context: req.Context);
                 break;
             }
         });
@@ -80,7 +80,7 @@ public class ApprovalDispatcherTests
                 req.Title.Should().Be("Refund approval");
                 req.Summary.Should().Contain("250");
                 req.Context.Should().ContainKey("amount").WhoseValue.Should().Be("250");
-                await channel.ApproveAsync(req.GateId, reviewer: "ops");
+                await channel.ApproveAsync(req.GateId, reviewer: "ops", requestId: req.RequestId, context: req.Context);
                 break;
             }
         });

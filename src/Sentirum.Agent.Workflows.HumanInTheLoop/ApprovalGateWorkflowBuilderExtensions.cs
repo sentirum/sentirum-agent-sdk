@@ -116,7 +116,7 @@ public static class ApprovalGateWorkflowBuilderExtensions
                     response.GateId,
                     "(unknown)",
                     "(unknown)",
-                    new Dictionary<string, string>(),
+                    response.Context ?? new Dictionary<string, string>(),
                     response.CorrelationId ?? response.GateId,
                     response.RequestId ?? string.Empty),
                 response.Approved,
