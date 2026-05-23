@@ -37,6 +37,25 @@ public sealed class SentirumChatClientBaseTests
         client.AttemptCount.Should().Be(4); // 1 initial + 3 retries (default MaxRetries)
     }
 
+    [Theory]
+    [InlineData(-1, 1000, 1)] // negative timeout
+    [InlineData(1, 1000, -1)] // negative MaxRetries
+    [InlineData(1, -1, 1)]    // negative RetryBaseDelay
+    public void Constructor_RejectsInvalidOptions(int timeoutSecs, int retryDelayMs, int maxRetries)
+    {
+        var options = new SentirumChatClientOptions
+        {
+            ProviderName = "x",
+            Timeout = TimeSpan.FromSeconds(timeoutSecs),
+            RetryBaseDelay = TimeSpan.FromMilliseconds(retryDelayMs),
+            MaxRetries = maxRetries,
+            LogRequests = false,
+        };
+
+        var act = () => new FlakyChatClient(0, "x", options);
+        act.Should().Throw<ArgumentException>();
+    }
+
     [Fact]
     public async Task GetResponseAsync_RespectsCallerCancellation()
     {
@@ -62,15 +81,18 @@ public sealed class SentirumChatClientBaseTests
         public int AttemptCount { get; private set; }
 
         public FlakyChatClient(int failuresBeforeSuccess, string reply)
-            : base(
-                new SentirumChatClientOptions
-                {
-                    ProviderName = "flaky",
-                    LogRequests = false,
-                    RetryBaseDelay = TimeSpan.FromMilliseconds(1),
-                    Timeout = TimeSpan.FromSeconds(5),
-                },
-                NullLogger.Instance)
+            : this(failuresBeforeSuccess, reply, new SentirumChatClientOptions
+            {
+                ProviderName = "flaky",
+                LogRequests = false,
+                RetryBaseDelay = TimeSpan.FromMilliseconds(1),
+                Timeout = TimeSpan.FromSeconds(5),
+            })
+        {
+        }
+
+        public FlakyChatClient(int failuresBeforeSuccess, string reply, SentirumChatClientOptions options)
+            : base(options, NullLogger.Instance)
         {
             _failuresBeforeSuccess = failuresBeforeSuccess;
             _reply = reply;

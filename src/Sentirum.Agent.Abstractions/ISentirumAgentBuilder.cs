@@ -55,5 +55,10 @@ public interface ISentirumAgentBuilder
     /// Adds a configuration delegate that runs against the resolved agent
     /// options after all builder extensions have contributed.
     /// </summary>
+    /// <remarks>
+    /// Prefer the clearer <see cref="SentirumAgentBuilderConfigureExtensions.ConfigureOptions"/>
+    /// extension; this primitive remains for compatibility with first-party
+    /// provider extensions.
+    /// </remarks>
     ISentirumAgentBuilder Configure(Action<SentirumAgentOptions> configure);
 }

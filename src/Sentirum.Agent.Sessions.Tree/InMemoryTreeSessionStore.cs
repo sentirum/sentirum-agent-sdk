@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Agents.AI;
@@ -18,13 +18,25 @@ namespace Sentirum.Agent.Sessions.Tree;
 /// is a true deep copy.
 /// </summary>
 /// <remarks>
+/// <para>
 /// Intended for single-process scenarios, samples, and tests. A distributed
 /// implementation (Redis / EF Core) lands in M4.
+/// </para>
+/// <para>
+/// All mutating operations are safe for concurrent callers. Children lists
+/// are stored as <see cref="ImmutableArray{T}"/> behind a lock-free
+/// <see cref="ConcurrentDictionary{TKey, TValue}"/> using <c>AddOrUpdate</c>
+/// so concurrent forks of the same parent never corrupt the list.
+/// </para>
 /// </remarks>
 public sealed class InMemoryTreeSessionStore : ITreeSessionStore
 {
-    private readonly ConcurrentDictionary<string, ISentirumSession> _sessions = new(StringComparer.Ordinal);
-    private readonly ConcurrentDictionary<string, List<string>> _childrenByParent = new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<string, ISentirumSession> _sessions =
+        new(StringComparer.Ordinal);
+
+    private readonly ConcurrentDictionary<string, ImmutableArray<string>> _childrenByParent =
+        new(StringComparer.Ordinal);
+
     private readonly ISentirumAgentRegistry _registry;
 
     /// <summary>
@@ -42,6 +54,7 @@ public sealed class InMemoryTreeSessionStore : ITreeSessionStore
         CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(agentId);
+        cancellationToken.ThrowIfCancellationRequested();
 
         var agent = ResolveAgent(agentId);
         var innerSession = await agent.InnerAgent
@@ -63,6 +76,7 @@ public sealed class InMemoryTreeSessionStore : ITreeSessionStore
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(parent);
+        cancellationToken.ThrowIfCancellationRequested();
 
         if (parent.InnerSession is null)
         {
@@ -91,9 +105,13 @@ public sealed class InMemoryTreeSessionStore : ITreeSessionStore
             forkPointMessageCount: CountMessages(parent));
 
         _sessions[fork.Id] = fork;
-        _childrenByParent
-            .GetOrAdd(parent.Id, _ => new List<string>())
-            .Add(fork.Id);
+
+        // ImmutableArray + AddOrUpdate makes concurrent forks of the same
+        // parent safe — neither caller can observe a partially-mutated list.
+        _childrenByParent.AddOrUpdate(
+            parent.Id,
+            _ => ImmutableArray.Create(fork.Id),
+            (_, existing) => existing.Add(fork.Id));
 
         return fork;
     }
@@ -104,6 +122,8 @@ public sealed class InMemoryTreeSessionStore : ITreeSessionStore
         CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(sessionId);
+        cancellationToken.ThrowIfCancellationRequested();
+
         _sessions.TryGetValue(sessionId, out var session);
         return Task.FromResult(session);
     }
@@ -114,6 +134,8 @@ public sealed class InMemoryTreeSessionStore : ITreeSessionStore
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(session);
+        cancellationToken.ThrowIfCancellationRequested();
+
         _sessions[session.Id] = session;
         return Task.CompletedTask;
     }
@@ -124,6 +146,7 @@ public sealed class InMemoryTreeSessionStore : ITreeSessionStore
         CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(rootSessionId);
+        cancellationToken.ThrowIfCancellationRequested();
 
         if (!_sessions.TryGetValue(rootSessionId, out var anySession))
         {
@@ -144,7 +167,30 @@ public sealed class InMemoryTreeSessionStore : ITreeSessionStore
     }
 
     /// <inheritdoc />
-    public async Task MergeAsync(
+    /// <remarks>
+    /// <para>
+    /// Merge semantics (see ADR-0002):
+    /// </para>
+    /// <list type="bullet">
+    ///   <item><description>
+    ///     <paramref name="target"/> must be an ancestor of
+    ///     <paramref name="source"/>. The conceptual model is "fold a branch
+    ///     back into its trunk". A no-op direction (merging an ancestor into
+    ///     a descendant) throws so callers cannot accidentally duplicate
+    ///     shared history.
+    ///   </description></item>
+    ///   <item><description>
+    ///     The two sessions must belong to the same agent.
+    ///   </description></item>
+    ///   <item><description>
+    ///     Only messages added on <paramref name="source"/> after the fork
+    ///     point are replayed onto <paramref name="target"/>; each is
+    ///     deep-cloned so further mutation on either side cannot leak across
+    ///     branches.
+    ///   </description></item>
+    /// </list>
+    /// </remarks>
+    public Task MergeAsync(
         ISentirumSession source,
         ISentirumSession target,
         int? lastMessageCount = null,
@@ -152,11 +198,12 @@ public sealed class InMemoryTreeSessionStore : ITreeSessionStore
     {
         ArgumentNullException.ThrowIfNull(source);
         ArgumentNullException.ThrowIfNull(target);
+        cancellationToken.ThrowIfCancellationRequested();
 
-        if (source.InnerSession is null || target.InnerSession is null)
+        if (string.Equals(source.Id, target.Id, StringComparison.Ordinal))
         {
             throw new InvalidOperationException(
-                "Both source and target sessions must be bound to an AgentSession before merging.");
+                "Cannot merge a session into itself.");
         }
 
         if (!string.Equals(source.AgentId, target.AgentId, StringComparison.Ordinal))
@@ -164,6 +211,27 @@ public sealed class InMemoryTreeSessionStore : ITreeSessionStore
             throw new InvalidOperationException(
                 $"Cannot merge sessions across different agents " +
                 $"('{source.AgentId}' vs '{target.AgentId}').");
+        }
+
+        if (source is not SentirumSession concreteSource)
+        {
+            throw new InvalidOperationException(
+                $"Merge requires the source session to carry Sentirum fork " +
+                $"metadata; got '{source.GetType().FullName}'.");
+        }
+
+        if (!IsAncestor(candidateAncestorId: target.Id, descendantSession: concreteSource))
+        {
+            throw new InvalidOperationException(
+                $"Cannot merge: target session '{target.Id}' is not an ancestor " +
+                $"of source '{source.Id}'. Merges always fold a fork back into " +
+                "its trunk.");
+        }
+
+        if (source.InnerSession is null || target.InnerSession is null)
+        {
+            throw new InvalidOperationException(
+                "Both source and target sessions must be bound to an AgentSession before merging.");
         }
 
         if (!source.InnerSession.TryGetInMemoryChatHistory(out var sourceHistory)
@@ -182,14 +250,9 @@ public sealed class InMemoryTreeSessionStore : ITreeSessionStore
                 "cannot merge into it.");
         }
 
-        // Determine which messages are "new" on the source compared to the
-        // target. The divergence point is recorded on the source as
-        // ForkPointMessageCount when ForkAsync ran — anything past that
-        // index on the source is the work added on this branch.
-        var divergenceIndex = source is SentirumSession concreteSource
-            ? Math.Min(concreteSource.ForkPointMessageCount, sourceHistory.Count)
-            : CommonPrefixLength(sourceHistory, targetHistory);
-
+        // Divergence index recorded at ForkAsync time. Clamp to current
+        // source size because callers may truncate history out-of-band.
+        var divergenceIndex = Math.Min(concreteSource.ForkPointMessageCount, sourceHistory.Count);
         var newOnSource = sourceHistory.Skip(divergenceIndex).ToList();
 
         if (lastMessageCount is int take && take >= 0 && take < newOnSource.Count)
@@ -199,10 +262,12 @@ public sealed class InMemoryTreeSessionStore : ITreeSessionStore
 
         foreach (var message in newOnSource)
         {
-            targetHistory.Add(message);
+            // Deep-clone so post-merge mutation on the source branch can't
+            // leak into target history (and vice-versa).
+            targetHistory.Add(CloneMessage(message));
         }
 
-        await Task.CompletedTask;
+        return Task.CompletedTask;
     }
 
     /// <inheritdoc />
@@ -213,6 +278,7 @@ public sealed class InMemoryTreeSessionStore : ITreeSessionStore
     {
         ArgumentNullException.ThrowIfNull(left);
         ArgumentNullException.ThrowIfNull(right);
+        cancellationToken.ThrowIfCancellationRequested();
 
         return Task.FromResult(new SessionDiff(
             leftSessionId: left.Id,
@@ -230,6 +296,7 @@ public sealed class InMemoryTreeSessionStore : ITreeSessionStore
 
         if (_childrenByParent.TryGetValue(session.Id, out var childIds))
         {
+            // childIds is an ImmutableArray — safe to iterate without lock.
             foreach (var childId in childIds)
             {
                 if (_sessions.TryGetValue(childId, out var childSession))
@@ -254,16 +321,60 @@ public sealed class InMemoryTreeSessionStore : ITreeSessionStore
             : 0;
     }
 
-    private static int CommonPrefixLength(List<ChatMessage> left, List<ChatMessage> right)
+    /// <summary>
+    /// Walks the parent chain of <paramref name="descendantSession"/> and
+    /// returns <see langword="true"/> when <paramref name="candidateAncestorId"/>
+    /// is reached.
+    /// </summary>
+    private bool IsAncestor(string candidateAncestorId, SentirumSession descendantSession)
     {
-        var max = Math.Min(left.Count, right.Count);
-        var i = 0;
-        while (i < max && ReferenceEquals(left[i], right[i]))
+        var current = descendantSession.ParentId;
+        while (current is not null)
         {
-            i++;
+            if (string.Equals(current, candidateAncestorId, StringComparison.Ordinal))
+            {
+                return true;
+            }
+
+            if (!_sessions.TryGetValue(current, out var parent))
+            {
+                break;
+            }
+
+            current = parent.ParentId;
         }
 
-        return i;
+        return false;
+    }
+
+    /// <summary>
+    /// Produces a shallow-deep clone of <paramref name="message"/> suitable
+    /// for cross-branch transfer: contents and additional properties are
+    /// copied into fresh containers so post-merge mutation on either branch
+    /// cannot leak across.
+    /// </summary>
+    private static ChatMessage CloneMessage(ChatMessage message)
+    {
+        // ChatMessage exposes a copy constructor as `Contents` list; we
+        // rebuild a new instance so the target list and properties dict
+        // don't alias the source.
+        var contents = message.Contents is { Count: > 0 }
+            ? new List<AIContent>(message.Contents)
+            : new List<AIContent>();
+
+        var clone = new ChatMessage(message.Role, contents)
+        {
+            AuthorName = message.AuthorName,
+            MessageId = message.MessageId,
+            RawRepresentation = message.RawRepresentation,
+        };
+
+        if (message.AdditionalProperties is { Count: > 0 } props)
+        {
+            clone.AdditionalProperties = new AdditionalPropertiesDictionary(props);
+        }
+
+        return clone;
     }
 
     private ISentirumAgent ResolveAgent(string agentId)

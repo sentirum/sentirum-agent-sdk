@@ -44,9 +44,45 @@ public abstract class SentirumChatClientBase : IChatClient
         ArgumentNullException.ThrowIfNull(options);
         ArgumentNullException.ThrowIfNull(logger);
 
+        ValidateOptions(options);
+
         _options = options;
         _logger = logger;
         _retryPipeline = BuildRetryPipeline(options);
+    }
+
+    private static void ValidateOptions(SentirumChatClientOptions options)
+    {
+        if (string.IsNullOrWhiteSpace(options.ProviderName))
+        {
+            throw new ArgumentException(
+                "ProviderName must be a non-empty string.",
+                nameof(options));
+        }
+
+        if (options.Timeout < TimeSpan.Zero)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(options),
+                options.Timeout,
+                "Timeout cannot be negative. Use TimeSpan.Zero to disable.");
+        }
+
+        if (options.MaxRetries < 0)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(options),
+                options.MaxRetries,
+                "MaxRetries cannot be negative. Use 0 to disable retries.");
+        }
+
+        if (options.RetryBaseDelay < TimeSpan.Zero)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(options),
+                options.RetryBaseDelay,
+                "RetryBaseDelay cannot be negative.");
+        }
     }
 
     /// <summary>
@@ -83,6 +119,7 @@ public abstract class SentirumChatClientBase : IChatClient
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(messages);
+        cancellationToken.ThrowIfCancellationRequested();
 
         // Snapshot the messages so the retry policy can replay them.
         var snapshot = messages as IList<ChatMessage> ?? new List<ChatMessage>(messages);
@@ -120,8 +157,10 @@ public abstract class SentirumChatClientBase : IChatClient
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(messages);
+        cancellationToken.ThrowIfCancellationRequested();
 
         var snapshot = messages as IList<ChatMessage> ?? new List<ChatMessage>(messages);
+        var stopwatch = Stopwatch.StartNew();
 
         if (_options.LogRequests)
         {
@@ -139,10 +178,43 @@ public abstract class SentirumChatClientBase : IChatClient
 
         var token = timeoutCts?.Token ?? cancellationToken;
 
-        await foreach (var update in CallProviderStreamingAsync(snapshot, options, token)
-            .ConfigureAwait(false))
+        // Enumerate with WithCancellation so providers that don't observe
+        // the token internally still terminate on caller cancellation or
+        // timeout. Failures are logged once before re-throwing.
+        IAsyncEnumerator<ChatResponseUpdate> enumerator;
+        try
         {
-            yield return update;
+            enumerator = CallProviderStreamingAsync(snapshot, options, token)
+                .GetAsyncEnumerator(token);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            _logger.LogFailure(ex, _options.ProviderName, stopwatch.ElapsedMilliseconds);
+            throw;
+        }
+
+        await using (enumerator.ConfigureAwait(false))
+        {
+            while (true)
+            {
+                ChatResponseUpdate current;
+                try
+                {
+                    if (!await enumerator.MoveNextAsync().ConfigureAwait(false))
+                    {
+                        break;
+                    }
+
+                    current = enumerator.Current;
+                }
+                catch (Exception ex) when (ex is not OperationCanceledException)
+                {
+                    _logger.LogFailure(ex, _options.ProviderName, stopwatch.ElapsedMilliseconds);
+                    throw;
+                }
+
+                yield return current;
+            }
         }
     }
 

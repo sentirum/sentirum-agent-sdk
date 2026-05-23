@@ -45,6 +45,8 @@ public static class ToolDiscovery
         ToolAttribute attribute,
         object toolsetInstance)
     {
+        ValidateToolMethod(method);
+
         var resolvedName = attribute.Name ?? StripAsyncSuffix(method.Name);
 
         var options = new AIFunctionFactoryOptions
@@ -64,6 +66,41 @@ public static class ToolDiscovery
 
         return AIFunctionFactory.Create(boundDelegate, options);
     }
+
+    /// <summary>
+    /// Validates that <paramref name="method"/> can be exposed as a tool.
+    /// Rejects unsupported signatures with clear messages instead of letting
+    /// the reflection layer throw deep inside <c>AIFunctionFactory</c>.
+    /// </summary>
+    private static void ValidateToolMethod(MethodInfo method)
+    {
+        if (method.ContainsGenericParameters)
+        {
+            throw new InvalidOperationException(
+                $"Tool method '{method.DeclaringType?.FullName}.{method.Name}' is generic; " +
+                "generic tools are not supported. Provide a non-generic wrapper.");
+        }
+
+        if (method.ReturnType == typeof(void) && IsAsyncStateMachine(method))
+        {
+            throw new InvalidOperationException(
+                $"Tool method '{method.DeclaringType?.FullName}.{method.Name}' is async void; " +
+                "return Task or Task<T> instead.");
+        }
+
+        foreach (var parameter in method.GetParameters())
+        {
+            if (parameter.ParameterType.IsByRef || parameter.IsOut || parameter.IsIn)
+            {
+                throw new InvalidOperationException(
+                    $"Tool method '{method.DeclaringType?.FullName}.{method.Name}' parameter " +
+                    $"'{parameter.Name}' is ref/out/in; tool parameters must be passed by value.");
+            }
+        }
+    }
+
+    private static bool IsAsyncStateMachine(MethodInfo method) =>
+        method.GetCustomAttribute<System.Runtime.CompilerServices.AsyncStateMachineAttribute>() is not null;
 
     private static string StripAsyncSuffix(string methodName) =>
         methodName.EndsWith("Async", StringComparison.Ordinal) && methodName.Length > "Async".Length

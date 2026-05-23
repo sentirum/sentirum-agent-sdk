@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Agents.AI;
@@ -20,8 +21,16 @@ namespace Sentirum.Agent;
 /// Implementations are expected to be thread-safe and to host the
 /// underlying <see cref="AIAgent"/> for the lifetime of the agent.
 /// </para>
+/// <para>
+/// <see cref="ISentirumAgent"/> implements <see cref="IAsyncDisposable"/>
+/// because the wrapped chat-client pipeline and MAF inner agent typically
+/// hold transport resources (HTTP connections, queue consumers, etc.).
+/// When agents are resolved from DI the container handles disposal; when
+/// constructed manually the caller is responsible for awaiting
+/// <see cref="IAsyncDisposable.DisposeAsync"/>. See ADR-0001.
+/// </para>
 /// </remarks>
-public interface ISentirumAgent
+public interface ISentirumAgent : IAsyncDisposable
 {
     /// <summary>
     /// Gets a stable identifier for this agent (typically the registered name).

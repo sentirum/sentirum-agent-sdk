@@ -42,6 +42,33 @@ public sealed class ZaiThinkingChatClientTests
     }
 
     [Fact]
+    public async Task EnableZaiThinking_DoesNotMutateCallerSuppliedAdditionalProperties()
+    {
+        var spy = new SpyChatClient();
+        var services = new ServiceCollection();
+
+        services.AddSentirumAgent("zai", b => b
+            .UseChatClient(_ => spy)
+            .EnableZaiThinking());
+
+        using var sp = services.BuildServiceProvider();
+        var agent = sp.GetRequiredService<ISentirumAgentRegistry>().Find("zai")!;
+        var session = await sp.GetRequiredService<ISentirumSessionStore>().CreateAsync(agent.Id);
+
+        // Drive the run through the agent twice with a shared ChatOptions
+        // proxy; the spy captures whatever leaves the EnableZaiThinking layer.
+        await agent.RunAsync(session, new ChatMessage(ChatRole.User, "one"));
+        var firstSeen = spy.LastOptions;
+        await agent.RunAsync(session, new ChatMessage(ChatRole.User, "two"));
+        var secondSeen = spy.LastOptions;
+
+        // Each turn must hand a fresh ChatOptions to the leaf provider so
+        // mutation across turns cannot leak.
+        ReferenceEquals(firstSeen, secondSeen).Should().BeFalse(
+            "ApplyThinking must clone ChatOptions per call.");
+    }
+
+    [Fact]
     public async Task EnableZaiThinking_DisabledFlag_EmitsDisabledType()
     {
         var spy = new SpyChatClient();

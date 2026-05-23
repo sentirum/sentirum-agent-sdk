@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
+using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using Sentirum.Agent.Sessions.Tree;
@@ -86,6 +87,77 @@ public sealed class InMemoryTreeSessionStoreTests
 
         var after = await store.CompareAsync(parent, fork);
         after.MessageCountDelta.Should().Be(0, "after merge the timelines should align.");
+    }
+
+    [Fact]
+    public async Task ForkAsync_Concurrent_AllChildrenAppearInTree()
+    {
+        var (store, agent) = BuildHost();
+        var parent = await store.CreateAsync(agent.Id);
+        await agent.RunAsync(parent, new ChatMessage(ChatRole.User, "seed"));
+
+        const int ForkCount = 32;
+        var tasks = new Task<ISentirumSession>[ForkCount];
+        for (var i = 0; i < ForkCount; i++)
+        {
+            tasks[i] = Task.Run(() => store.ForkAsync(parent));
+        }
+        await Task.WhenAll(tasks);
+
+        var tree = await store.GetTreeAsync(parent.Id);
+        tree.Root.Children.Should().HaveCount(
+            ForkCount,
+            "concurrent ForkAsync calls on the same parent must never lose children.");
+    }
+
+    [Fact]
+    public async Task MergeAsync_WrongDirection_Throws()
+    {
+        var (store, agent) = BuildHost();
+        var root = await store.CreateAsync(agent.Id);
+        await agent.RunAsync(root, new ChatMessage(ChatRole.User, "shared"));
+        var fork = await store.ForkAsync(root);
+
+        var act = async () => await store.MergeAsync(source: root, target: fork);
+        await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("*ancestor*");
+    }
+
+    [Fact]
+    public async Task MergeAsync_UnrelatedSessions_Throws()
+    {
+        var (store, agent) = BuildHost();
+        var a = await store.CreateAsync(agent.Id);
+        var b = await store.CreateAsync(agent.Id);
+
+        var act = async () => await store.MergeAsync(source: a, target: b);
+        await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("*ancestor*");
+    }
+
+    [Fact]
+    public async Task MergeAsync_ClonesMessagesSoSourceMutationsDoNotLeak()
+    {
+        var (store, agent) = BuildHost();
+        var root = await store.CreateAsync(agent.Id);
+        await agent.RunAsync(root, new ChatMessage(ChatRole.User, "shared"));
+
+        var fork = await store.ForkAsync(root);
+        await agent.RunAsync(fork, new ChatMessage(ChatRole.User, "only-on-fork"));
+
+        await store.MergeAsync(source: fork, target: root);
+
+        // Find the merged user message on the source and mutate its props.
+        fork.InnerSession!.TryGetInMemoryChatHistory(out var srcHistory);
+        var srcMsg = srcHistory![^2]; // user msg, not assistant reply
+        srcMsg.AdditionalProperties ??= new AdditionalPropertiesDictionary();
+        srcMsg.AdditionalProperties["injected"] = "value";
+
+        root.InnerSession!.TryGetInMemoryChatHistory(out var rootHistory);
+        var rootCopy = rootHistory![^2]; // the just-merged user msg on root
+        var leaked = rootCopy.AdditionalProperties is not null
+            && rootCopy.AdditionalProperties.ContainsKey("injected");
+
+        leaked.Should().BeFalse(
+            "merge must deep-clone messages so post-merge mutation cannot cross branches.");
     }
 
     [Fact]

@@ -72,11 +72,13 @@ Console.WriteLine("=== Session tree ===");
 Console.WriteLine(tree.ToAsciiTree());
 
 // Pretend the team picks "discount" as the winning branch and merges it
-// back onto the original timeline.
+// back onto the original timeline. Note the direction: source = branch,
+// target = ancestor (root). The opposite direction is now a hard error.
 await store.MergeAsync(source: discount, target: root);
 
-Console.WriteLine($"Merged 'discount' branch into root. Root now has {tree.Root.MessageCount} messages " +
-                  "(refresh GetTreeAsync to see the updated count).");
+// Re-fetch the tree so the printed counts reflect the merge.
+tree = await store.GetTreeAsync(root.Id);
+Console.WriteLine($"Merged 'discount' branch into root. Root now has {tree.Root.MessageCount} messages.");
 
 async Task RunAsync(ISentirumSession session, string text)
 {

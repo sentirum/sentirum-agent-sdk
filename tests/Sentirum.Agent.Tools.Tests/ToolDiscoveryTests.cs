@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.Extensions.AI;
@@ -47,6 +48,30 @@ public sealed class ToolDiscoveryTests
     }
 
     [Fact]
+    public void Discover_RefParameter_ThrowsWithClearMessage()
+    {
+        var act = () => ToolDiscovery.Discover(new RefToolset()).ToList();
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("*ref/out/in*");
+    }
+
+    [Fact]
+    public void Discover_OutParameter_ThrowsWithClearMessage()
+    {
+        var act = () => ToolDiscovery.Discover(new OutToolset()).ToList();
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("*ref/out/in*");
+    }
+
+    [Fact]
+    public void Discover_GenericMethod_ThrowsWithClearMessage()
+    {
+        var act = () => ToolDiscovery.Discover(new GenericToolset()).ToList();
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("*generic*");
+    }
+
+    [Fact]
     public void WithTools_ResolvesToolsetFromDi()
     {
         var services = new ServiceCollection();
@@ -63,6 +88,26 @@ public sealed class ToolDiscoveryTests
         // ChatOptions.Tools is set up inside SentirumAgentFactory; here we
         // just assert resolution succeeded (no MissingTools / DI exception).
     }
+
+#pragma warning disable CA1045, CA1822 // intentional: invalid tool signatures used for rejection tests
+    private sealed class RefToolset
+    {
+        [Tool(Description = "invalid")]
+        public void Mutate(ref int counter) => counter++;
+    }
+
+    private sealed class OutToolset
+    {
+        [Tool(Description = "invalid")]
+        public void Produce(out int value) => value = 42;
+    }
+
+    private sealed class GenericToolset
+    {
+        [Tool(Description = "invalid")]
+        public T Echo<T>(T input) => input;
+    }
+#pragma warning restore CA1045, CA1822
 
     private sealed class SampleToolset
     {

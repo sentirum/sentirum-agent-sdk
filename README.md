@@ -3,8 +3,10 @@
 An opinionated, production-oriented **.NET SDK for building AI agents**, built
 on top of [Microsoft Agent Framework][maf] and [`Microsoft.Extensions.AI`][meai].
 
-> **Status:** very early. M0 (foundation) is in. M1 (Core MVP) is next.
-> Until v1.0, every minor preview release may break.
+> **Status:** early. M0–M3 + the M3.5 hardening sprint are in.
+> Current package version: `0.1.0-preview`. Until v1.0, every minor preview
+> release may break. See [`docs/adr/`](docs/adr/) for the durable design
+> decisions that now back the public surface.
 
 ## Why Sentirum?
 
@@ -64,6 +66,7 @@ dotnet test   Sentirum.Agent.slnx -c Release --no-build
 | **M1** ✅ | Core runtime + Hosting + OpenAI provider + `01-HelloAgent` end-to-end. |
 | **M2** ✅ | Multi-provider: Anthropic, Ollama, OpenAI/Anthropic-compatible adapters, `SentirumChatClientBase`, Z.AI convenience + `02-MultiProvider`. |
 | **M3** ✅ | Tools (`[Tool]` + `WithTools<T>()`) and tree sessions (fork / merge / walk / visualize) + `03-ToolCalling` + `04-SessionForking`. |
+| **M3.5** ✅ | Hardening pass after the `gpt-5.5` code review: thread-safe forks, direction-safe merges with deep-cloned messages, agent disposal, tool-signature validation, options validation, streaming-cancellation observability, ADR-0001–0006. |
 | **M2** | Custom providers (`SentirumChatClientBase`, OpenAI-compatible, Anthropic, Ollama). |
 | **M3** | Tool registry + tree sessions + MCP. |
 | **M4** | Memory + context providers + RAG. |
