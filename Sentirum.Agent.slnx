@@ -20,6 +20,7 @@
     <Project Path="src/Sentirum.Agent.Providers.Ollama/Sentirum.Agent.Providers.Ollama.csproj" />
     <Project Path="src/Sentirum.Agent.Providers.OpenAI/Sentirum.Agent.Providers.OpenAI.csproj" />
     <Project Path="src/Sentirum.Agent.Providers.OpenAICompatible/Sentirum.Agent.Providers.OpenAICompatible.csproj" />
+    <Project Path="src/Sentirum.Agent.Providers.MiniMax/Sentirum.Agent.Providers.MiniMax.csproj" />
     <Project Path="src/Sentirum.Agent.Providers.ZAI/Sentirum.Agent.Providers.ZAI.csproj" />
     <Project Path="src/Sentirum.Agent.Sessions.Tree/Sentirum.Agent.Sessions.Tree.csproj" />
     <Project Path="src/Sentirum.Agent.Tools.Core/Sentirum.Agent.Tools.Core.csproj" />
@@ -44,5 +45,6 @@
     <Project Path="tests/Sentirum.Agent.Workflows.Tests/Sentirum.Agent.Workflows.Tests.csproj" />
     <Project Path="tests/Sentirum.Agent.Workflows.HumanInTheLoop.Tests/Sentirum.Agent.Workflows.HumanInTheLoop.Tests.csproj" />
     <Project Path="tests/Sentirum.Agent.Embeddings.Tests/Sentirum.Agent.Embeddings.Tests.csproj" />
+    <Project Path="tests/Sentirum.Agent.Providers.MiniMax.Tests/Sentirum.Agent.Providers.MiniMax.Tests.csproj" />
   </Folder>
 </Solution>

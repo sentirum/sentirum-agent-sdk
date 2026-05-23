@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Sentirum.Agent.Providers.MiniMax</RootNamespace>
+    <AssemblyName>Sentirum.Agent.Providers.MiniMax</AssemblyName>
+    <Description>MiniMax provider for the Sentirum Agent SDK. Supports both OpenAI-compatible and Anthropic-compatible protocols.</Description>
+    <PackageId>Sentirum.Agent.Providers.MiniMax</PackageId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Sentirum.Agent.Abstractions\Sentirum.Agent.Abstractions.csproj" />
+    <ProjectReference Include="..\Sentirum.Agent.Core\Sentirum.Agent.Core.csproj" />
+    <ProjectReference Include="..\Sentirum.Agent.Providers.OpenAI\Sentirum.Agent.Providers.OpenAI.csproj" />
+    <ProjectReference Include="..\Sentirum.Agent.Providers.AnthropicCompatible\Sentirum.Agent.Providers.AnthropicCompatible.csproj" />
+  </ItemGroup>
+
+</Project>
