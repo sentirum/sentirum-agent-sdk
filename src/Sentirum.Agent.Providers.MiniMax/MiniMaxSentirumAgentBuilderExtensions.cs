@@ -1,6 +1,9 @@
 using System;
+using System.Runtime.CompilerServices;
+using System.Text;
 using Anthropic;
 using Microsoft.Extensions.AI;
+using Sentirum.Agent.Providers.MiniMax;
 
 namespace Sentirum.Agent;
 
@@ -36,12 +39,18 @@ public static class MiniMaxSentirumAgentBuilderExtensions
     /// When <see langword="true"/> (the default), enables function-invocation
     /// middleware. Disable for providers that do not support tool calling.
     /// </param>
+    /// <param name="separateThinking">
+    /// When <see langword="true"/> (the default), adds the
+    /// <see cref="MiniMaxThinkingMiddleware"/> to the pipeline to separate
+    /// thinking content from the answer.
+    /// </param>
     public static ISentirumAgentBuilder UseMiniMax(
         this ISentirumAgentBuilder builder,
         string model,
         string apiKey,
         MiniMaxProtocol protocol = MiniMaxProtocol.OpenAI,
-        bool configureFunctionInvocation = true)
+        bool configureFunctionInvocation = true,
+        bool separateThinking = true)
     {
         ArgumentNullException.ThrowIfNull(builder);
         ArgumentException.ThrowIfNullOrWhiteSpace(model);
@@ -49,8 +58,8 @@ public static class MiniMaxSentirumAgentBuilderExtensions
 
         return protocol switch
         {
-            MiniMaxProtocol.OpenAI => UseOpenAIProtocol(builder, model, apiKey, configureFunctionInvocation),
-            MiniMaxProtocol.Anthropic => UseAnthropicProtocol(builder, model, apiKey, configureFunctionInvocation),
+            MiniMaxProtocol.OpenAI => UseOpenAIProtocol(builder, model, apiKey, configureFunctionInvocation, separateThinking),
+            MiniMaxProtocol.Anthropic => UseAnthropicProtocol(builder, model, apiKey, configureFunctionInvocation, separateThinking),
             _ => throw new ArgumentOutOfRangeException(nameof(protocol), protocol, "Unsupported MiniMax protocol."),
         };
     }
@@ -63,14 +72,22 @@ public static class MiniMaxSentirumAgentBuilderExtensions
         ISentirumAgentBuilder builder,
         string model,
         string apiKey,
-        bool configureFunctionInvocation)
+        bool configureFunctionInvocation,
+        bool separateThinking)
     {
         // Delegate to the OpenAI provider with the MiniMax endpoint override.
-        return builder.UseOpenAI(
+        builder.UseOpenAI(
             model: model,
             apiKey: apiKey,
             endpoint: DefaultOpenAIBaseUrl,
             configureFunctionInvocation: configureFunctionInvocation);
+
+        if (separateThinking)
+        {
+            builder.ConfigureChatClient(b => b.UseMiniMaxThinking());
+        }
+
+        return builder;
     }
 
     // ------------------------------------------------------------------
@@ -81,7 +98,8 @@ public static class MiniMaxSentirumAgentBuilderExtensions
         ISentirumAgentBuilder builder,
         string model,
         string apiKey,
-        bool configureFunctionInvocation)
+        bool configureFunctionInvocation,
+        bool separateThinking)
     {
         var anthropicClient = new AnthropicClient()
             .WithOptions(o =>
@@ -98,6 +116,11 @@ public static class MiniMaxSentirumAgentBuilderExtensions
         if (configureFunctionInvocation)
         {
             builder.ConfigureChatClient(b => b.UseFunctionInvocation());
+        }
+
+        if (separateThinking)
+        {
+            builder.ConfigureChatClient(b => b.UseMiniMaxThinking());
         }
 
         return builder;
