@@ -102,7 +102,13 @@ public sealed class SentirumWorkflow : ISentirumWorkflow
         // input type does not accept it.
         if (_dispatchMode == WorkflowDispatchMode.AgentTurn)
         {
-            await run.TrySendMessageAsync(new TurnToken(emitEvents: true)).ConfigureAwait(false);
+            var sent = await run.TrySendMessageAsync(new TurnToken(emitEvents: true)).ConfigureAwait(false);
+            if (!sent)
+            {
+                throw new InvalidOperationException(
+                    $"Workflow '{Id}' could not dispatch TurnToken. " +
+                    "Ensure the workflow contains at least one agent executor.");
+            }
         }
 
         var events = new List<WorkflowEvent>();
@@ -137,7 +143,13 @@ public sealed class SentirumWorkflow : ISentirumWorkflow
         // See note in RunAsync — same single-shot Sentirum contract.
         if (_dispatchMode == WorkflowDispatchMode.AgentTurn)
         {
-            await run.TrySendMessageAsync(new TurnToken(emitEvents: true)).ConfigureAwait(false);
+            var sent = await run.TrySendMessageAsync(new TurnToken(emitEvents: true)).ConfigureAwait(false);
+            if (!sent)
+            {
+                throw new InvalidOperationException(
+                    $"Workflow '{Id}' could not dispatch TurnToken. " +
+                    "Ensure the workflow contains at least one agent executor.");
+            }
         }
 
         await foreach (var evt in run.WatchStreamAsync(cancellationToken).ConfigureAwait(false))

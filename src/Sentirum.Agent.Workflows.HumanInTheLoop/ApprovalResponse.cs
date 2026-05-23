@@ -21,8 +21,20 @@ namespace Sentirum.Agent.Workflows.HumanInTheLoop;
 /// Optional free-form note. Appended to the workflow event log and
 /// surfaced through <see cref="ApprovalOutcome.Comment"/>.
 /// </param>
+/// <param name="CorrelationId">
+/// Must match the <see cref="ApprovalRequest.CorrelationId"/> the
+/// composer embedded in the original request so the projector can
+/// disambiguate multiple firings of the same gate in a single run.
+/// </param>
+/// <param name="RequestId">
+/// The MAF ExternalRequest.RequestId that the dispatcher generated for
+/// this pending request. Enables out-of-order response routing without
+/// relying on a FIFO queue per gate.
+/// </param>
 public sealed record ApprovalResponse(
     string GateId,
     bool Approved,
     string? Reviewer = null,
-    string? Comment = null);
+    string? Comment = null,
+    string? CorrelationId = null,
+    string? RequestId = null);

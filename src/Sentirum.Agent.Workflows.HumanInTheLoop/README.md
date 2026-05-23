@@ -15,7 +15,8 @@ var (builder, downstream) = new WorkflowBuilder(intake)
         gate,
         requestComposer: rec => new ApprovalRequest(
             gate.Id, "İade onayı", rec.Summary,
-            new Dictionary<string, string> { ["amount"] = rec.Amount.ToString() }),
+            new Dictionary<string, string> { ["amount"] = rec.Amount.ToString() },
+            CorrelationId: string.Empty, RequestId: string.Empty),
         onApproved: outcome => $"✅ {outcome.Reviewer} onayladı",
         onRejected: outcome => $"❌ {outcome.Reviewer} reddetti: {outcome.Comment}");
 

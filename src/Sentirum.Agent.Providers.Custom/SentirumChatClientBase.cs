@@ -8,6 +8,7 @@ using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Polly;
 using Polly.Retry;
+using Polly.Timeout;
 
 namespace Sentirum.Agent.Providers.Custom;
 
@@ -233,11 +234,12 @@ public abstract class SentirumChatClientBase : IChatClient
     {
         var builder = new ResiliencePipelineBuilder();
 
-        if (options.Timeout > TimeSpan.Zero)
-        {
-            builder.AddTimeout(options.Timeout);
-        }
-
+        // Retry must be OUTERMOST so it sees every failure first and
+        // decides whether to re-execute the inner pipeline (which
+        // includes the timeout). If timeout were outermost, a slow
+        // request would time out, throw OperationCanceledException,
+        // and the retry layer would never see it — making retries
+        // silently ineffective.
         if (options.MaxRetries > 0)
         {
             builder.AddRetry(new RetryStrategyOptions
@@ -247,8 +249,20 @@ public abstract class SentirumChatClientBase : IChatClient
                 Delay = options.RetryBaseDelay,
                 UseJitter = true,
                 ShouldHandle = new PredicateBuilder()
+                    .Handle<TimeoutRejectedException>()
+                    .Handle<HttpRequestException>()
+                    .Handle<IOException>()
                     .Handle<Exception>(ex => ex is not OperationCanceledException),
             });
+        }
+
+        // Timeout is INNERMOST so each individual attempt (including
+        // retries) gets its own deadline. The timeout throws
+        // TimeoutRejectedException on expiry, which the outer retry
+        // layer catches and re-attempts.
+        if (options.Timeout > TimeSpan.Zero)
+        {
+            builder.AddTimeout(options.Timeout);
         }
 
         return builder.Build();

@@ -69,7 +69,9 @@ var (_, downstream) = workflowBuilder.WithApprovalGate<RefundRecommendation, str
             ["customer"] = rec.Original.CustomerId,
             ["amount"] = rec.Original.Amount.ToString(CultureInfo.InvariantCulture),
             ["reason"] = rec.Original.Reason,
-        }),
+        },
+        CorrelationId: string.Empty,
+        RequestId: string.Empty),
     onApproved: outcome =>
         $"✅ İade ONAYLANDI ({outcome.Reviewer ?? "ops"}) — " +
         $"{outcome.Request.Context["customer"]} / ${outcome.Request.Context["amount"]}. " +

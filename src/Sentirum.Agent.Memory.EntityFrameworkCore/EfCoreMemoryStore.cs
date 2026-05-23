@@ -87,7 +87,7 @@ public sealed class EfCoreMemoryStore<TContext> : ISentirumMemoryStore
         // Step 2: insert path. We translate the unique-index violation that
         // can happen when two callers reach this branch concurrently into
         // an updated path so the caller observes upsert semantics.
-        Set.Add(new SentirumMemoryRecord
+        var record = new SentirumMemoryRecord
         {
             Scope = (int)partition.Scope,
             AgentId = partition.AgentId,
@@ -98,7 +98,8 @@ public sealed class EfCoreMemoryStore<TContext> : ISentirumMemoryStore
             CreatedAt = now,
             UpdatedAt = now,
             ExpiresAt = absoluteExpiration,
-        });
+        };
+        var addedEntry = Set.Add(record);
 
         try
         {
@@ -106,14 +107,10 @@ public sealed class EfCoreMemoryStore<TContext> : ISentirumMemoryStore
         }
         catch (DbUpdateException)
         {
-            // A concurrent insert won the race; detach our pending entity
-            // and run the update path instead.
-            foreach (var entry in _context.ChangeTracker
-                .Entries<SentirumMemoryRecord>()
-                .ToList())
-            {
-                entry.State = EntityState.Detached;
-            }
+            // A concurrent insert won the race; detach only the entity
+            // we just added so the caller's own tracked instances are
+            // not affected.
+            addedEntry.State = EntityState.Detached;
 
             await ApplyPartition(Set, partition)
                 .Where(r => r.Key == key)

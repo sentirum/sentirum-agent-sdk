@@ -16,7 +16,9 @@ public class InMemoryApprovalChannelTests
             "g1",
             "Refund",
             "Refund 99.99 USD",
-            new Dictionary<string, string> { ["amount"] = "99.99" });
+            new Dictionary<string, string> { ["amount"] = "99.99" },
+            CorrelationId: "corr-1",
+            RequestId: "req-1");
 
         await channel.PublishAsync(request);
 

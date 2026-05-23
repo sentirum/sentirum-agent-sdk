@@ -64,14 +64,18 @@ public static class ApprovalDispatcher
         // would otherwise wait for the token forever.
         if (sendAgentTurnToken)
         {
-            await run.TrySendMessageAsync(new TurnToken(emitEvents: false)).ConfigureAwait(false);
+            var sent = await run.TrySendMessageAsync(new TurnToken(emitEvents: false)).ConfigureAwait(false);
+            if (!sent)
+            {
+                throw new InvalidOperationException(
+                    "Approval workflow could not dispatch TurnToken. " +
+                    "Ensure the workflow contains at least one agent executor.");
+            }
         }
 
         // RequestId → originating ExternalRequest. We need the envelope
         // to call CreateResponse(...) once a verdict arrives.
         var pending = new ConcurrentDictionary<string, ExternalRequest>(StringComparer.Ordinal);
-        // GateId → list of pending RequestIds waiting for this gate.
-        var gateToRequests = new ConcurrentDictionary<string, ConcurrentQueue<string>>(StringComparer.Ordinal);
 
         var events = new List<WorkflowEvent>();
         var outputs = new List<object?>();
@@ -81,7 +85,7 @@ public static class ApprovalDispatcher
         // ConsumeAsync stream is drained even while we are inside the
         // event loop. It exits when the workflow run halts.
         using var pumpCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        var pumpTask = PumpResponsesAsync(run, channel, pending, gateToRequests, pumpCts.Token);
+        var pumpTask = PumpResponsesAsync(run, channel, pending, pumpCts.Token);
 
         try
         {
@@ -95,15 +99,14 @@ public static class ApprovalDispatcher
                         when req.Request.TryGetDataAs(out ApprovalRequest? approvalRequest)
                         && approvalRequest is not null:
 
-                        observed.Add(approvalRequest);
+                        // Stamp the MAF RequestId onto the payload so the
+                        // reviewer can echo it back for out-of-order routing.
+                        var stamped = approvalRequest with { RequestId = req.Request.RequestId };
+                        observed.Add(stamped);
                         pending[req.Request.RequestId] = req.Request;
-                        var queue = gateToRequests.GetOrAdd(
-                            approvalRequest.GateId,
-                            _ => new ConcurrentQueue<string>());
-                        queue.Enqueue(req.Request.RequestId);
 
                         await channel
-                            .PublishAsync(approvalRequest, cancellationToken)
+                            .PublishAsync(stamped, cancellationToken)
                             .ConfigureAwait(false);
                         break;
 
@@ -124,6 +127,14 @@ public static class ApprovalDispatcher
             {
                 // Expected when we cancel the pump after the workflow halts.
             }
+            catch (Exception pumpEx)
+            {
+                // The pump may fail (e.g. channel disposed while iterating).
+                // We do not let this swallow the workflow result; surface it
+                // via a synthetic error event so callers can observe it in
+                // the run log.
+                events.Add(new WorkflowErrorEvent(pumpEx));
+            }
         }
 
         var status = await run.GetStatusAsync(cancellationToken).ConfigureAwait(false);
@@ -134,18 +145,20 @@ public static class ApprovalDispatcher
         StreamingRun run,
         IApprovalChannel channel,
         ConcurrentDictionary<string, ExternalRequest> pending,
-        ConcurrentDictionary<string, ConcurrentQueue<string>> gateToRequests,
         CancellationToken cancellationToken)
     {
         await foreach (var response in channel.ConsumeAsync(cancellationToken).ConfigureAwait(false))
         {
-            if (!gateToRequests.TryGetValue(response.GateId, out var queue)
-                || !queue.TryDequeue(out var requestId)
+            // Out-of-order responses are safe because we route by the
+            // MAF RequestId the dispatcher stashed when the gate fired,
+            // not by a FIFO queue per gate.
+            var requestId = response.RequestId ?? string.Empty;
+            if (string.IsNullOrEmpty(requestId)
                 || !pending.TryRemove(requestId, out var externalRequest))
             {
-                // Late or unmatched response — surface in the run's
-                // event log for diagnostics but do not throw, the
-                // workflow may have already halted.
+                // Late or unmatched response — the workflow may have
+                // already halted or the response carries an id from a
+                // previous run. Drop silently.
                 continue;
             }
 

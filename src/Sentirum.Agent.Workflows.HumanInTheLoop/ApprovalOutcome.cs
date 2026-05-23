@@ -8,8 +8,10 @@ namespace Sentirum.Agent.Workflows.HumanInTheLoop;
 /// <param name="Approved">Whether the reviewer approved the request.</param>
 /// <param name="Reviewer">Reviewer identifier, if supplied.</param>
 /// <param name="Comment">Reviewer comment, if supplied.</param>
+/// <param name="CorrelationId">The correlation id that ties this outcome back to the originating request.</param>
 public sealed record ApprovalOutcome(
     ApprovalRequest Request,
     bool Approved,
     string? Reviewer,
-    string? Comment);
+    string? Comment,
+    string? CorrelationId);

@@ -87,43 +87,42 @@ public static class ApprovalGateWorkflowBuilderExtensions
         ArgumentNullException.ThrowIfNull(onApproved);
         ArgumentNullException.ThrowIfNull(onRejected);
 
-        // The pending request table keyed on RequestId. ApprovalRequest
-        // is JSON-serializable so MAF can carry it across the port; we
-        // still need to remember the original payload locally because
-        // the response only carries an ApprovalResponse, not the
-        // composed request.
-        var pending = new Dictionary<string, ApprovalRequest>(StringComparer.Ordinal);
-        var pendingLock = new object();
-
         // Composer returns the ApprovalRequest as its output; the
         // composer→port edge added below routes it to the request port,
         // which emits the RequestInfoEvent the dispatcher listens for.
         // Do *not* call ctx.SendMessageAsync(...) here too — that would
         // double-deliver the request and produce two external requests
         // per source payload.
+        //
+        // Each request carries a fresh CorrelationId so the projector
+        // can disambiguate multiple firings of the same gate in a
+        // single run. The response must echo the same id back.
         var composerBinding = ((Func<TSourceOutput, IWorkflowContext, System.Threading.Tasks.ValueTask<ApprovalRequest>>)((payload, _) =>
         {
-            var request = requestComposer(payload);
-            lock (pendingLock)
-            {
-                pending[request.GateId] = request;
-            }
+            var request = requestComposer(payload) with { CorrelationId = Guid.NewGuid().ToString("N") };
             return new System.Threading.Tasks.ValueTask<ApprovalRequest>(request);
         })).BindAsExecutor(composerId ?? $"{gate.Id}-composer", options: null, threadsafe: true);
 
         var projectorBinding = ((Func<ApprovalResponse, IWorkflowContext, System.Threading.Tasks.ValueTask<TDownstream>>)((response, _) =>
         {
-            ApprovalRequest? originalRequest;
-            lock (pendingLock)
-            {
-                pending.TryGetValue(response.GateId, out originalRequest);
-            }
-
+            // The response must carry the same CorrelationId the
+            // composer generated so we can match it back to the
+            // originating request. If the response is missing the id
+            // (legacy channel implementations) we fall back to the
+            // GateId, which is safe only when the gate fires once per
+            // run.
             var outcome = new ApprovalOutcome(
-                originalRequest ?? new ApprovalRequest(response.GateId, "(unknown)", "(unknown)", new Dictionary<string, string>()),
+                new ApprovalRequest(
+                    response.GateId,
+                    "(unknown)",
+                    "(unknown)",
+                    new Dictionary<string, string>(),
+                    response.CorrelationId ?? response.GateId,
+                    response.RequestId ?? string.Empty),
                 response.Approved,
                 response.Reviewer,
-                response.Comment);
+                response.Comment,
+                response.CorrelationId);
 
             var downstream = outcome.Approved ? onApproved(outcome) : onRejected(outcome);
             return new System.Threading.Tasks.ValueTask<TDownstream>(downstream);

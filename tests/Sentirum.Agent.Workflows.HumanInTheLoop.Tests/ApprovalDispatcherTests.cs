@@ -111,7 +111,9 @@ public class ApprovalDispatcherTests
                 gate.Id,
                 "Refund approval",
                 $"Approve refund for ${amount}?",
-                new Dictionary<string, string> { ["amount"] = amount.ToString(System.Globalization.CultureInfo.InvariantCulture) }),
+                new Dictionary<string, string> { ["amount"] = amount.ToString(System.Globalization.CultureInfo.InvariantCulture) },
+                CorrelationId: string.Empty,
+                RequestId: string.Empty),
             onApproved: outcome => $"APPROVED:{outcome.Request.Context["amount"]}",
             onRejected: outcome => $"REJECTED:{outcome.Request.Context["amount"]}");
 

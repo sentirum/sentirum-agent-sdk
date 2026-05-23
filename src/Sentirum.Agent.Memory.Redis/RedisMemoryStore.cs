@@ -79,6 +79,13 @@ public sealed class RedisMemoryStore : ISentirumMemoryStore
             // converge on a single TTL deadline per hash.
             await db.KeyExpireAsync(redisKey, until.UtcDateTime).ConfigureAwait(false);
         }
+        else
+        {
+            // The caller explicitly wants no TTL (or no default is
+            // configured). Remove any existing TTL so the hash does not
+            // silently inherit a stale deadline from a prior write.
+            await db.KeyPersistAsync(redisKey).ConfigureAwait(false);
+        }
     }
 
     /// <inheritdoc />
