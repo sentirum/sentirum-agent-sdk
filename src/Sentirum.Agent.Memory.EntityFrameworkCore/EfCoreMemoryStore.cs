@@ -184,15 +184,12 @@ public sealed class EfCoreMemoryStore<TContext> : ISentirumMemoryStore
         partition.Validate();
         cancellationToken.ThrowIfCancellationRequested();
 
-        var row = await FindAsync(partition, key, cancellationToken).ConfigureAwait(false);
-        if (row is null)
-        {
-            return false;
-        }
+        var deleted = await ApplyPartition(Set, partition)
+            .Where(r => r.Key == key)
+            .ExecuteDeleteAsync(cancellationToken)
+            .ConfigureAwait(false);
 
-        Set.Remove(row);
-        await _context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-        return true;
+        return deleted > 0;
     }
 
     /// <inheritdoc />
@@ -203,18 +200,9 @@ public sealed class EfCoreMemoryStore<TContext> : ISentirumMemoryStore
         partition.Validate();
         cancellationToken.ThrowIfCancellationRequested();
 
-        var rows = await ApplyPartition(Set, partition)
-            .ToListAsync(cancellationToken)
+        return await ApplyPartition(Set, partition)
+            .ExecuteDeleteAsync(cancellationToken)
             .ConfigureAwait(false);
-
-        if (rows.Count == 0)
-        {
-            return 0;
-        }
-
-        Set.RemoveRange(rows);
-        await _context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-        return rows.Count;
     }
 
     private async Task<SentirumMemoryRecord?> FindAsync(

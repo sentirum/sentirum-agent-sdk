@@ -137,7 +137,6 @@ public sealed class RedisMemoryStore : ISentirumMemoryStore
             }
 
             yield return entry;
-            await Task.Yield();
         }
     }
 
