@@ -23,6 +23,17 @@ public sealed class InMemoryMemoryStore : ISentirumMemoryStore
     private readonly ConcurrentDictionary<string, ConcurrentDictionary<string, MemoryEntry>> _partitions =
         new(StringComparer.Ordinal);
 
+    /// <summary>
+    /// Maximum number of entries across all partitions before proactive
+    /// eviction kicks in. Set to <c>0</c> to disable the limit.
+    /// </summary>
+    public int MaxTotalEntries { get; init; } = 10_000;
+
+    /// <summary>
+    /// Interval between proactive eviction sweeps. Default is 5 minutes.
+    /// </summary>
+    public TimeSpan EvictionInterval { get; init; } = TimeSpan.FromMinutes(5);
+
     /// <inheritdoc />
     public Task SetAsync(
         MemoryPartition partition,
@@ -146,6 +157,35 @@ public sealed class InMemoryMemoryStore : ISentirumMemoryStore
         bucket.Clear();
         return Task.FromResult(count);
     }
+
+    /// <summary>
+    /// Evicts all expired entries across every partition. Returns the
+    /// total number of entries removed. Suitable for a periodic
+    /// background sweep or a health-check endpoint.
+    /// </summary>
+    public int EvictExpired()
+    {
+        var removed = 0;
+        foreach (var (_, bucket) in _partitions)
+        {
+            foreach (var (key, entry) in bucket.ToArray())
+            {
+                if (IsExpired(entry))
+                {
+                    if (bucket.TryRemove(key, out _))
+                    {
+                        removed++;
+                    }
+                }
+            }
+        }
+        return removed;
+    }
+
+    /// <summary>
+    /// Total number of entries currently held across all partitions.
+    /// </summary>
+    public int TotalEntryCount => _partitions.Sum(p => p.Value.Count);
 
     private static bool IsExpired(MemoryEntry entry) =>
         entry.ExpiresAt is DateTimeOffset deadline && DateTimeOffset.UtcNow >= deadline;

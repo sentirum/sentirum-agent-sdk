@@ -20,6 +20,13 @@ public sealed class InMemorySessionStore : ISentirumSessionStore
     private readonly ISentirumAgentRegistry _registry;
 
     /// <summary>
+    /// Maximum number of sessions before proactive eviction kicks in.
+    /// When exceeded, the oldest sessions are removed. Set to
+    /// <c>0</c> to disable the limit.
+    /// </summary>
+    public int MaxSessionCount { get; init; } = 1_000;
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="InMemorySessionStore"/> class.
     /// </summary>
     public InMemorySessionStore(ISentirumAgentRegistry registry)
@@ -97,6 +104,37 @@ public sealed class InMemorySessionStore : ISentirumSessionStore
     {
         ArgumentNullException.ThrowIfNull(session);
         _sessions[session.Id] = session;
+
+        if (MaxSessionCount > 0 && _sessions.Count > MaxSessionCount)
+        {
+            EvictOldest();
+        }
+
         return Task.CompletedTask;
     }
+
+    /// <summary>
+    /// Removes the oldest sessions until the count is back under
+    /// <see cref="MaxSessionCount"/>. The "oldest" heuristic is the
+    /// first entries returned by the dictionary enumerator — sufficient
+    /// for a best-effort pressure valve, not a strict LRU.
+    /// </summary>
+    public void EvictOldest()
+    {
+        var excess = _sessions.Count - MaxSessionCount;
+        if (excess <= 0)
+        {
+            return;
+        }
+
+        foreach (var key in _sessions.Keys.Take(excess))
+        {
+            _sessions.TryRemove(key, out _);
+        }
+    }
+
+    /// <summary>
+    /// Total sessions currently held.
+    /// </summary>
+    public int SessionCount => _sessions.Count;
 }
