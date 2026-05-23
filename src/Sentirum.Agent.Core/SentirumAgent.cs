@@ -121,6 +121,13 @@ public sealed class SentirumAgent : ISentirumAgent, IDisposable
     /// it is registered as a non-async scope. Prefer <see cref="DisposeAsync"/>
     /// when calling manually.
     /// </summary>
+    /// <remarks>
+    /// When the inner agent only implements <see cref="IAsyncDisposable"/>
+    /// we offload to the thread pool (<c>Task.Run</c>) before blocking so
+    /// the await does not capture the caller's <see cref="SynchronizationContext"/>
+    /// and deadlock in environments such as WPF, WinForms, or ASP.NET
+    /// (non-Core).
+    /// </remarks>
     public void Dispose()
     {
         if (Interlocked.Exchange(ref _disposed, 1) == 1)
@@ -134,9 +141,11 @@ public sealed class SentirumAgent : ISentirumAgent, IDisposable
         }
         else if (InnerAgent is IAsyncDisposable asyncDisposable)
         {
-            // No sync path on the inner agent; block briefly. Async-only
-            // inner agents should be paired with async container teardown.
-            asyncDisposable.DisposeAsync().AsTask().GetAwaiter().GetResult();
+            // Offload to the thread pool so the await inside DisposeAsync
+            // cannot capture the caller's SynchronizationContext.
+            Task.Run(() => asyncDisposable.DisposeAsync().AsTask())
+                .GetAwaiter()
+                .GetResult();
         }
     }
 

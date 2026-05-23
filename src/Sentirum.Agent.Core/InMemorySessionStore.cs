@@ -53,22 +53,31 @@ public sealed class InMemorySessionStore : ISentirumSessionStore
     }
 
     /// <inheritdoc />
-    public Task<ISentirumSession> ForkAsync(
+    public async Task<ISentirumSession> ForkAsync(
         ISentirumSession parent,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(parent);
 
-        // M3 ships true tree-fork semantics on top of AgentSession serialization.
-        // For M1 we model the relationship but share the same inner session.
+        var agent = _registry.Find(parent.AgentId)
+            ?? throw new InvalidOperationException(
+                $"Agent '{parent.AgentId}' not found in registry during fork.");
+
+        // Create a fresh AgentSession for the fork so mutations in the
+        // child branch do not bleed back into the parent. This gives
+        // true tree semantics rather than a shallow reference share.
+        var freshInnerSession = await agent.InnerAgent
+            .CreateSessionAsync(cancellationToken)
+            .ConfigureAwait(false);
+
         var fork = new SentirumSession(
             id: Guid.NewGuid().ToString("n"),
             agentId: parent.AgentId,
-            innerSession: parent.InnerSession,
+            innerSession: freshInnerSession,
             parentId: parent.Id);
 
         _sessions[fork.Id] = fork;
-        return Task.FromResult<ISentirumSession>(fork);
+        return fork;
     }
 
     /// <inheritdoc />

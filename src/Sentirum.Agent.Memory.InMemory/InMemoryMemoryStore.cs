@@ -95,7 +95,9 @@ public sealed class InMemoryMemoryStore : ISentirumMemoryStore
             yield break;
         }
 
-        foreach (var entry in bucket.Values)
+        // Snapshot with ToArray so concurrent writers (SetAsync / DeleteAsync)
+        // cannot invalidate the enumerator mid-loop.
+        foreach (var entry in bucket.Values.ToArray())
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -106,7 +108,6 @@ public sealed class InMemoryMemoryStore : ISentirumMemoryStore
             }
 
             yield return entry;
-            await Task.Yield();
         }
     }
 
