@@ -19,9 +19,9 @@ using Sentirum.Agent.Providers.ZAI;
 
 const string Question = "Selam! Sentirum müşteri destek SDK'sını bir cümlede tanıt.";
 const string Instructions = """
-    Sen Sentirum'un Türkçe konuşan müşteri destek asistanısın.
-    Çok kısa, kibar ve net cevap ver.
-    """;
+                            Sen Sentirum'un Türkçe konuşan müşteri destek asistanısın.
+                            Çok kısa, kibar ve net cevap ver.
+                            """;
 
 var builder = Host.CreateApplicationBuilder(args);
 builder.Services.AddSentirumCore();
@@ -44,7 +44,8 @@ void Register(string name, Action<ISentirumAgentBuilder> configure, bool when = 
 }
 
 Register("openai",
-    b => b.UseOpenAI("gpt-4o-mini", apiKey: Environment.GetEnvironmentVariable("OPENAI_API_KEY")),
+    b => b
+.UseOpenAI("gpt-4o-mini", apiKey: Environment.GetEnvironmentVariable("OPENAI_API_KEY")),
     when: !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("OPENAI_API_KEY")));
 
 Register("anthropic",
@@ -53,7 +54,7 @@ Register("anthropic",
 
 Register("zai-openai",
     b => b.UseZAI("glm-4.6", apiKey: Environment.GetEnvironmentVariable("ZAI_API_KEY"), protocol: ZaiProtocol.OpenAI)
-          .EnableZaiThinking(),
+        .EnableZaiThinking(),
     when: !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("ZAI_API_KEY")));
 
 Register("zai-anthropic",
@@ -67,8 +68,8 @@ Register("ollama",
 Register("custom",
     b => b.UseOpenAICompatible(
         endpoint: new Uri(Environment.GetEnvironmentVariable("CUSTOM_BASE_URL")!),
-        model:    Environment.GetEnvironmentVariable("CUSTOM_MODEL")!,
-        apiKey:   Environment.GetEnvironmentVariable("CUSTOM_API_KEY")!),
+        model: Environment.GetEnvironmentVariable("CUSTOM_MODEL")!,
+        apiKey: Environment.GetEnvironmentVariable("CUSTOM_API_KEY")!),
     when: !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("CUSTOM_BASE_URL")));
 
 using var host = builder.Build();
@@ -99,11 +100,12 @@ foreach (var providerName in registeredProviders)
     try
     {
         await foreach (var update in agent.RunStreamingAsync(
-            session,
-            new ChatMessage(ChatRole.User, Question)))
+                           session,
+                           new ChatMessage(ChatRole.User, Question)))
         {
             Console.Write(update.Text);
         }
+
         Console.WriteLine();
     }
     catch (Exception ex)

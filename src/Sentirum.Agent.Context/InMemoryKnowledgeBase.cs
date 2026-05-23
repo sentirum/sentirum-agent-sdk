@@ -14,7 +14,7 @@ namespace Sentirum.Agent.Context;
 /// </summary>
 public sealed class InMemoryKnowledgeBase : IKnowledgeBase
 {
-    private static readonly char[] WordSeparators =
+    private static readonly char[] _wordSeparators =
         { ' ', '.', ',', ';', ':', '!', '?', '\n', '\r', '\t', '(', ')', '"', '\'' };
 
     private readonly IReadOnlyList<KnowledgeBaseSnippet> _snippets;
@@ -75,7 +75,7 @@ public sealed class InMemoryKnowledgeBase : IKnowledgeBase
         var haystackTokens = new System.Collections.Generic.HashSet<string>(
             (s.Title + " " + s.Content)
                 .ToLowerInvariant()
-                .Split(WordSeparators, StringSplitOptions.RemoveEmptyEntries),
+                .Split(_wordSeparators, StringSplitOptions.RemoveEmptyEntries),
             StringComparer.Ordinal);
 
         var hits = 0;

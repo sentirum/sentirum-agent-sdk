@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsTestProject>true</IsTestProject>
+    <NoWarn>$(NoWarn);CA1861</NoWarn>
+    <RootNamespace>Sentirum.Agent.Embeddings.Tests</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Sentirum.Agent.Embeddings\Sentirum.Agent.Embeddings.csproj" />
+    <ProjectReference Include="..\..\src\Sentirum.Agent.Embeddings.Abstractions\Sentirum.Agent.Embeddings.Abstractions.csproj" />
+    <ProjectReference Include="..\..\src\Sentirum.Agent.Context\Sentirum.Agent.Context.csproj" />
+  </ItemGroup>
+
+</Project>

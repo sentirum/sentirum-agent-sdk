@@ -28,6 +28,8 @@
     <Project Path="src/Sentirum.Agent.Memory.Redis/Sentirum.Agent.Memory.Redis.csproj" />
     <Project Path="src/Sentirum.Agent.Memory.EntityFrameworkCore/Sentirum.Agent.Memory.EntityFrameworkCore.csproj" />
     <Project Path="src/Sentirum.Agent.Context/Sentirum.Agent.Context.csproj" />
+    <Project Path="src/Sentirum.Agent.Embeddings.Abstractions/Sentirum.Agent.Embeddings.Abstractions.csproj" />
+    <Project Path="src/Sentirum.Agent.Embeddings/Sentirum.Agent.Embeddings.csproj" />
     <Project Path="src/Sentirum.Agent.Workflows/Sentirum.Agent.Workflows.csproj" />
     <Project Path="src/Sentirum.Agent.Workflows.HumanInTheLoop/Sentirum.Agent.Workflows.HumanInTheLoop.csproj" />
   </Folder>
@@ -41,5 +43,6 @@
     <Project Path="tests/Sentirum.Agent.Context.Tests/Sentirum.Agent.Context.Tests.csproj" />
     <Project Path="tests/Sentirum.Agent.Workflows.Tests/Sentirum.Agent.Workflows.Tests.csproj" />
     <Project Path="tests/Sentirum.Agent.Workflows.HumanInTheLoop.Tests/Sentirum.Agent.Workflows.HumanInTheLoop.Tests.csproj" />
+    <Project Path="tests/Sentirum.Agent.Embeddings.Tests/Sentirum.Agent.Embeddings.Tests.csproj" />
   </Folder>
 </Solution>
