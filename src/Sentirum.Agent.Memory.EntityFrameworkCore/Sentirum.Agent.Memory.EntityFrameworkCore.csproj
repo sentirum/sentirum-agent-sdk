@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Sentirum.Agent.Memory.EntityFrameworkCore</RootNamespace>
+    <AssemblyName>Sentirum.Agent.Memory.EntityFrameworkCore</AssemblyName>
+    <Description>EF Core implementation of Sentirum.Agent.Memory.Abstractions. Bring your own DbContext or use the bundled SentirumMemoryDbContext (which works against any provider EF Core supports, including SQLite and SQL Server).</Description>
+    <PackageId>Sentirum.Agent.Memory.EntityFrameworkCore</PackageId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Sentirum.Agent.Memory.Abstractions\Sentirum.Agent.Memory.Abstractions.csproj" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+  </ItemGroup>
+
+</Project>

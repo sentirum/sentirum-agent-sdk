@@ -38,21 +38,12 @@ public static class SentirumAgentFactory
                 "provider extension before resolving the agent.");
         }
 
-        // 1. Compose the IChatClient pipeline. The leaf client comes from the
-        // provider factory; configured layers are wrapped around it in
-        // registration order so the first layer ends up outermost.
-        var chatClientBuilder = new ChatClientBuilder(builder.ChatClientFactory);
-        foreach (var configure in builder.ChatClientLayers)
-        {
-            configure(chatClientBuilder);
-        }
-
-        var chatClient = chatClientBuilder.Build(serviceProvider);
-
-        // 2. Resolve the options pipeline. Deferred extensions (such as
-        // WithTools<T>() in Sentirum.Agent.Tools.Core) need the DI scope to
-        // be discoverable. We surface it via an AsyncLocal scope that lives
-        // for the duration of the options pipeline.
+        // 1. Resolve the options pipeline first so context providers can be
+        // discovered before we build the chat-client pipeline. Deferred
+        // extensions (such as WithTools<T>() in Sentirum.Agent.Tools.Core,
+        // WithMemoryContext() in Sentirum.Agent.Context) need the DI scope
+        // to be discoverable; we surface it via an AsyncLocal scope that
+        // lives for the duration of the options pipeline.
         var options = new SentirumAgentOptions { Name = builder.Name };
         using (SentirumServiceProviderAccessor.Push(serviceProvider))
         {
@@ -61,6 +52,28 @@ public static class SentirumAgentFactory
                 configure(options);
             }
         }
+
+        // 2. Compose the IChatClient pipeline. The leaf client comes from the
+        // provider factory; configured layers are wrapped around it in
+        // registration order so the first layer ends up outermost.
+        // Context providers are appended as a single UseAIContextProviders
+        // call after user layers so they always sit closest to the leaf
+        // chat client (i.e. context enrichment happens just before the LLM
+        // is hit, after any user-supplied middleware has run).
+        var chatClientBuilder = new ChatClientBuilder(builder.ChatClientFactory);
+        foreach (var configure in builder.ChatClientLayers)
+        {
+            configure(chatClientBuilder);
+        }
+
+        if (options.ContextProviders.Count > 0)
+        {
+            var providers = new AIContextProvider[options.ContextProviders.Count];
+            options.ContextProviders.CopyTo(providers, 0);
+            chatClientBuilder.UseAIContextProviders(providers);
+        }
+
+        var chatClient = chatClientBuilder.Build(serviceProvider);
 
         // 3. Build the underlying MAF ChatClientAgent. Instructions are a ctor
         // argument (ChatClientAgentOptions does not expose them as a property

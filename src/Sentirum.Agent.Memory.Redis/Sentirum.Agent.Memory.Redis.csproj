@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Sentirum.Agent.Memory.Redis</RootNamespace>
+    <AssemblyName>Sentirum.Agent.Memory.Redis</AssemblyName>
+    <Description>Redis-backed implementation of Sentirum.Agent.Memory.Abstractions using StackExchange.Redis. Partitions are mapped to Redis hashes keyed by scope; absolute expiration is enforced via per-key TTL.</Description>
+    <PackageId>Sentirum.Agent.Memory.Redis</PackageId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Sentirum.Agent.Memory.Abstractions\Sentirum.Agent.Memory.Abstractions.csproj" />
+    <PackageReference Include="StackExchange.Redis" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Options" />
+  </ItemGroup>
+
+</Project>

@@ -43,6 +43,11 @@ roadmap. The current published surface is:
 | `Sentirum.Agent.Providers.ZAI` | Z.AI (GLM) convenience: `UseZAI(model, key, protocol)` + thinking mode helpers. |
 | `Sentirum.Agent.Tools.Core` | `[Tool]` attribute + reflection-based discovery + `WithTools<T>()`. |
 | `Sentirum.Agent.Sessions.Tree` | Tree-based sessions: fork / merge / walk / visualize. |
+| `Sentirum.Agent.Memory.Abstractions` | `ISentirumMemoryStore` + `MemoryScope` (Global / Agent / User / Session). |
+| `Sentirum.Agent.Memory.InMemory` | In-process memory store. |
+| `Sentirum.Agent.Memory.Redis` | Distributed memory store backed by Redis. |
+| `Sentirum.Agent.Memory.EntityFrameworkCore` | SQL memory store backed by EF Core. |
+| `Sentirum.Agent.Context` | `WithUserMemory()`, `WithAmbientInstructions()`, `WithKnowledgeBase()` context providers over the MAF `MessageAIContextProvider` pipeline. |
 
 More packages (Workflows, CustomerSupport) land per the milestone plan below.
 
@@ -67,6 +72,7 @@ dotnet test   Sentirum.Agent.slnx -c Release --no-build
 | **M2** ✅ | Multi-provider: Anthropic, Ollama, OpenAI/Anthropic-compatible adapters, `SentirumChatClientBase`, Z.AI convenience + `02-MultiProvider`. |
 | **M3** ✅ | Tools (`[Tool]` + `WithTools<T>()`) and tree sessions (fork / merge / walk / visualize) + `03-ToolCalling` + `04-SessionForking`. |
 | **M3.5** ✅ | Hardening pass after the `gpt-5.5` code review: thread-safe forks, direction-safe merges with deep-cloned messages, agent disposal, tool-signature validation, options validation, streaming-cancellation observability, ADR-0001–0006. |
+| **M4** ✅ | Memory (`InMemory` / `Redis` / `EntityFrameworkCore`) + context providers (`WithUserMemory`, `WithAmbientInstructions`, `WithKnowledgeBase`) + samples `05-Memory` and `06-Rag` verified live against Z.AI / GLM-4.6. |
 | **M2** | Custom providers (`SentirumChatClientBase`, OpenAI-compatible, Anthropic, Ollama). |
 | **M3** | Tool registry + tree sessions + MCP. |
 | **M4** | Memory + context providers + RAG. |

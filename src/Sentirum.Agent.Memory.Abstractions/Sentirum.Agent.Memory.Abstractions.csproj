@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Sentirum.Agent.Memory</RootNamespace>
+    <AssemblyName>Sentirum.Agent.Memory.Abstractions</AssemblyName>
+    <Description>Abstractions for the Sentirum agent memory layer: scoped key/value memory and conversation-message memory contracts shared by InMemory, Redis, and EntityFrameworkCore back-ends.</Description>
+    <PackageId>Sentirum.Agent.Memory.Abstractions</PackageId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Sentirum.Agent.Abstractions\Sentirum.Agent.Abstractions.csproj" />
+  </ItemGroup>
+
+</Project>

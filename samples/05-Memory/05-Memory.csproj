@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Sentirum.Samples.Memory</RootNamespace>
+    <AssemblyName>Sentirum.Samples.Memory</AssemblyName>
+    <UserSecretsId>sentirum-memory</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Sentirum.Agent.Abstractions\Sentirum.Agent.Abstractions.csproj" />
+    <ProjectReference Include="..\..\src\Sentirum.Agent.Core\Sentirum.Agent.Core.csproj" />
+    <ProjectReference Include="..\..\src\Sentirum.Agent.Hosting\Sentirum.Agent.Hosting.csproj" />
+    <ProjectReference Include="..\..\src\Sentirum.Agent.Providers.ZAI\Sentirum.Agent.Providers.ZAI.csproj" />
+    <ProjectReference Include="..\..\src\Sentirum.Agent.Memory.Abstractions\Sentirum.Agent.Memory.Abstractions.csproj" />
+    <ProjectReference Include="..\..\src\Sentirum.Agent.Memory.InMemory\Sentirum.Agent.Memory.InMemory.csproj" />
+    <ProjectReference Include="..\..\src\Sentirum.Agent.Context\Sentirum.Agent.Context.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+  </ItemGroup>
+
+</Project>

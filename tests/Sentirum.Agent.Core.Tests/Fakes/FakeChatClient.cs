@@ -21,6 +21,8 @@ internal sealed class FakeChatClient : IChatClient
 
     public List<IList<ChatMessage>> ReceivedRequests { get; } = [];
 
+    public List<ChatOptions?> ReceivedOptions { get; } = [];
+
     public Task<ChatResponse> GetResponseAsync(
         IEnumerable<ChatMessage> messages,
         ChatOptions? options = null,
@@ -28,6 +30,7 @@ internal sealed class FakeChatClient : IChatClient
     {
         var list = new List<ChatMessage>(messages);
         ReceivedRequests.Add(list);
+        ReceivedOptions.Add(options);
 
         var response = new ChatResponse(new ChatMessage(ChatRole.Assistant, _cannedReply));
         return Task.FromResult(response);
@@ -40,6 +43,7 @@ internal sealed class FakeChatClient : IChatClient
     {
         var list = new List<ChatMessage>(messages);
         ReceivedRequests.Add(list);
+        ReceivedOptions.Add(options);
 
         yield return new ChatResponseUpdate(ChatRole.Assistant, _cannedReply);
         await Task.CompletedTask;

@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Sentirum.Agent.Context.Tests</RootNamespace>
+    <AssemblyName>Sentirum.Agent.Context.Tests</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Sentirum.Agent.Core.Tests\Fakes\FakeChatClient.cs" LinkBase="Fakes" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Sentirum.Agent.Abstractions\Sentirum.Agent.Abstractions.csproj" />
+    <ProjectReference Include="..\..\src\Sentirum.Agent.Core\Sentirum.Agent.Core.csproj" />
+    <ProjectReference Include="..\..\src\Sentirum.Agent.Hosting\Sentirum.Agent.Hosting.csproj" />
+    <ProjectReference Include="..\..\src\Sentirum.Agent.Context\Sentirum.Agent.Context.csproj" />
+    <ProjectReference Include="..\..\src\Sentirum.Agent.Memory.Abstractions\Sentirum.Agent.Memory.Abstractions.csproj" />
+    <ProjectReference Include="..\..\src\Sentirum.Agent.Memory.InMemory\Sentirum.Agent.Memory.InMemory.csproj" />
+  </ItemGroup>
+
+</Project>

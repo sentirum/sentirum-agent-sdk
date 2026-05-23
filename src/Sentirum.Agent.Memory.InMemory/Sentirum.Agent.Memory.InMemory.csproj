@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Sentirum.Agent.Memory.InMemory</RootNamespace>
+    <AssemblyName>Sentirum.Agent.Memory.InMemory</AssemblyName>
+    <Description>In-process implementation of Sentirum.Agent.Memory.Abstractions. Intended for single-process scenarios, samples, and tests.</Description>
+    <PackageId>Sentirum.Agent.Memory.InMemory</PackageId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Sentirum.Agent.Memory.Abstractions\Sentirum.Agent.Memory.Abstractions.csproj" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+  </ItemGroup>
+
+</Project>

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 
 namespace Sentirum.Agent;
@@ -34,6 +35,17 @@ public sealed class SentirumAgentOptions
     /// Gets the AI functions (tools) registered on this agent.
     /// </summary>
     public IList<AIFunction> Tools { get; } = [];
+
+    /// <summary>
+    /// Gets the MAF <see cref="AIContextProvider"/> instances that enrich
+    /// every chat request with extra messages, instructions, or tools.
+    /// Populated by extensions such as
+    /// <c>WithMemoryContext()</c>, <c>WithCustomerProfile&lt;T&gt;()</c>,
+    /// and <c>WithKnowledgeBase(...)</c>. Order is preserved — providers
+    /// run in registration order before the chat client and in reverse on
+    /// the way back. See ADR-0003.
+    /// </summary>
+    public IList<AIContextProvider> ContextProviders { get; } = [];
 
     /// <summary>
     /// Gets a free-form metadata bag carried with the agent.

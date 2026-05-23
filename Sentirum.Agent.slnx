@@ -4,6 +4,8 @@
     <Project Path="samples/02-MultiProvider/02-MultiProvider.csproj" />
     <Project Path="samples/03-ToolCalling/03-ToolCalling.csproj" />
     <Project Path="samples/04-SessionForking/04-SessionForking.csproj" />
+    <Project Path="samples/05-Memory/05-Memory.csproj" />
+    <Project Path="samples/06-Rag/06-Rag.csproj" />
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/Sentirum.Agent.Abstractions/Sentirum.Agent.Abstractions.csproj" />
@@ -18,6 +20,11 @@
     <Project Path="src/Sentirum.Agent.Providers.ZAI/Sentirum.Agent.Providers.ZAI.csproj" />
     <Project Path="src/Sentirum.Agent.Sessions.Tree/Sentirum.Agent.Sessions.Tree.csproj" />
     <Project Path="src/Sentirum.Agent.Tools.Core/Sentirum.Agent.Tools.Core.csproj" />
+    <Project Path="src/Sentirum.Agent.Memory.Abstractions/Sentirum.Agent.Memory.Abstractions.csproj" />
+    <Project Path="src/Sentirum.Agent.Memory.InMemory/Sentirum.Agent.Memory.InMemory.csproj" />
+    <Project Path="src/Sentirum.Agent.Memory.Redis/Sentirum.Agent.Memory.Redis.csproj" />
+    <Project Path="src/Sentirum.Agent.Memory.EntityFrameworkCore/Sentirum.Agent.Memory.EntityFrameworkCore.csproj" />
+    <Project Path="src/Sentirum.Agent.Context/Sentirum.Agent.Context.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Sentirum.Agent.Abstractions.Tests/Sentirum.Agent.Abstractions.Tests.csproj" />
@@ -25,5 +32,7 @@
     <Project Path="tests/Sentirum.Agent.Providers.Tests/Sentirum.Agent.Providers.Tests.csproj" />
     <Project Path="tests/Sentirum.Agent.Sessions.Tree.Tests/Sentirum.Agent.Sessions.Tree.Tests.csproj" />
     <Project Path="tests/Sentirum.Agent.Tools.Tests/Sentirum.Agent.Tools.Tests.csproj" />
+    <Project Path="tests/Sentirum.Agent.Memory.Tests/Sentirum.Agent.Memory.Tests.csproj" />
+    <Project Path="tests/Sentirum.Agent.Context.Tests/Sentirum.Agent.Context.Tests.csproj" />
   </Folder>
 </Solution>
