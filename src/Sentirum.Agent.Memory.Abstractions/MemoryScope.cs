@@ -74,18 +74,62 @@ public readonly record struct MemoryPartition(
 
     /// <summary>
     /// Throws when the partition is missing the identifier required by its
-    /// <see cref="Scope"/>.
+    /// <see cref="Scope"/>, or when it carries identifiers that do not
+    /// apply to its scope (e.g. a <see cref="MemoryScope.Global"/> partition
+    /// with a <see cref="UserId"/> set).
     /// </summary>
+    /// <remarks>
+    /// Over-specification is rejected because different backends interpret
+    /// the extra ids differently (some ignore them, EF Core indexes them)
+    /// which would silently mis-partition data across stores.
+    /// </remarks>
     public void Validate()
     {
         switch (Scope)
         {
-            case MemoryScope.Agent when string.IsNullOrWhiteSpace(AgentId):
-                throw new InvalidOperationException("MemoryScope.Agent requires AgentId.");
-            case MemoryScope.User when string.IsNullOrWhiteSpace(UserId):
-                throw new InvalidOperationException("MemoryScope.User requires UserId.");
-            case MemoryScope.Session when string.IsNullOrWhiteSpace(SessionId):
-                throw new InvalidOperationException("MemoryScope.Session requires SessionId.");
+            case MemoryScope.Global:
+                RejectExtras(allowedAgent: false, allowedUser: false, allowedSession: false);
+                break;
+            case MemoryScope.Agent:
+                if (string.IsNullOrWhiteSpace(AgentId))
+                {
+                    throw new InvalidOperationException("MemoryScope.Agent requires AgentId.");
+                }
+                RejectExtras(allowedAgent: true, allowedUser: false, allowedSession: false);
+                break;
+            case MemoryScope.User:
+                if (string.IsNullOrWhiteSpace(UserId))
+                {
+                    throw new InvalidOperationException("MemoryScope.User requires UserId.");
+                }
+                RejectExtras(allowedAgent: false, allowedUser: true, allowedSession: false);
+                break;
+            case MemoryScope.Session:
+                if (string.IsNullOrWhiteSpace(SessionId))
+                {
+                    throw new InvalidOperationException("MemoryScope.Session requires SessionId.");
+                }
+                RejectExtras(allowedAgent: false, allowedUser: false, allowedSession: true);
+                break;
+        }
+    }
+
+    private void RejectExtras(bool allowedAgent, bool allowedUser, bool allowedSession)
+    {
+        if (!allowedAgent && !string.IsNullOrWhiteSpace(AgentId))
+        {
+            throw new InvalidOperationException(
+                $"MemoryScope.{Scope} must not specify AgentId.");
+        }
+        if (!allowedUser && !string.IsNullOrWhiteSpace(UserId))
+        {
+            throw new InvalidOperationException(
+                $"MemoryScope.{Scope} must not specify UserId.");
+        }
+        if (!allowedSession && !string.IsNullOrWhiteSpace(SessionId))
+        {
+            throw new InvalidOperationException(
+                $"MemoryScope.{Scope} must not specify SessionId.");
         }
     }
 }

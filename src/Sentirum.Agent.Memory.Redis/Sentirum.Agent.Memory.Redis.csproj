@@ -14,4 +14,8 @@
     <PackageReference Include="Microsoft.Extensions.Options" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="Sentirum.Agent.Memory.Tests" />
+  </ItemGroup>
+
 </Project>

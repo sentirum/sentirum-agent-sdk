@@ -73,6 +73,7 @@ dotnet test   Sentirum.Agent.slnx -c Release --no-build
 | **M3** ✅ | Tools (`[Tool]` + `WithTools<T>()`) and tree sessions (fork / merge / walk / visualize) + `03-ToolCalling` + `04-SessionForking`. |
 | **M3.5** ✅ | Hardening pass after the `gpt-5.5` code review: thread-safe forks, direction-safe merges with deep-cloned messages, agent disposal, tool-signature validation, options validation, streaming-cancellation observability, ADR-0001–0006. |
 | **M4** ✅ | Memory (`InMemory` / `Redis` / `EntityFrameworkCore`) + context providers (`WithUserMemory`, `WithAmbientInstructions`, `WithKnowledgeBase`) + samples `05-Memory` and `06-Rag` verified live against Z.AI / GLM-4.6. |
+| **M4.5** ✅ | Hardening pass after the `glm-5` code review: strict `MemoryPartition.Validate()`, EF Core upsert via `ExecuteUpdateAsync` + side-effect-free `GetAsync`, Redis envelope via `JsonSerializer` (surrogate-safe), multi-tenant `WithUserMemory(Func<...>)` + `WithSessionMemory(Func<...>)`, ADR-0007–0010, +15 tests. |
 | **M2** | Custom providers (`SentirumChatClientBase`, OpenAI-compatible, Anthropic, Ollama). |
 | **M3** | Tool registry + tree sessions + MCP. |
 | **M4** | Memory + context providers + RAG. |

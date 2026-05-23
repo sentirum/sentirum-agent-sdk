@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
@@ -176,70 +177,49 @@ public sealed class RedisMemoryStore : ISentirumMemoryStore
     }
 
     /// <summary>
-    /// Tiny JSON envelope used to round-trip <see cref="MemoryEntry"/>
-    /// metadata through a single Redis hash field. We hand-roll the writer
-    /// to avoid pulling System.Text.Json options through DI.
+    /// JSON envelope used to round-trip <see cref="MemoryEntry"/> metadata
+    /// through a single Redis hash field. Uses <see cref="JsonSerializer"/>
+    /// so payloads containing emoji or other surrogate-pair characters
+    /// round-trip safely (a hand-rolled writer is hard to get right and
+    /// becomes a data-poison vector if a lone surrogate leaks in —
+    /// JsonSerializer rejects lone surrogates at write time, so callers
+    /// get a clear exception instead of a write that cannot be read back).
     /// </summary>
     internal static class EnvelopeCodec
     {
+        private static readonly JsonSerializerOptions s_envelopeOptions = new(JsonSerializerDefaults.Web)
+        {
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        };
+
         public static string Encode(string value, DateTimeOffset createdAt, DateTimeOffset updatedAt, DateTimeOffset? expiresAt)
         {
-            var sb = new System.Text.StringBuilder(value.Length + 64);
-            sb.Append("{\"v\":");
-            AppendJsonString(sb, value);
-            sb.Append(",\"ca\":").Append(createdAt.ToUnixTimeMilliseconds().ToString(CultureInfo.InvariantCulture));
-            sb.Append(",\"ua\":").Append(updatedAt.ToUnixTimeMilliseconds().ToString(CultureInfo.InvariantCulture));
-            sb.Append(",\"ea\":");
-            sb.Append(expiresAt is null
-                ? "null"
-                : expiresAt.Value.ToUnixTimeMilliseconds().ToString(CultureInfo.InvariantCulture));
-            sb.Append('}');
-            return sb.ToString();
+            var envelope = new Envelope(
+                value,
+                createdAt.ToUnixTimeMilliseconds(),
+                updatedAt.ToUnixTimeMilliseconds(),
+                expiresAt?.ToUnixTimeMilliseconds());
+
+            return JsonSerializer.Serialize(envelope, s_envelopeOptions);
         }
 
         public static MemoryEntry Decode(string key, string envelope)
         {
-            using var doc = System.Text.Json.JsonDocument.Parse(envelope);
-            var root = doc.RootElement;
+            var parsed = JsonSerializer.Deserialize<Envelope>(envelope, s_envelopeOptions)
+                ?? throw new InvalidOperationException(
+                    $"Failed to decode Redis memory envelope for key '{key}'.");
 
-            var value = root.GetProperty("v").GetString() ?? string.Empty;
-            var createdAt = DateTimeOffset.FromUnixTimeMilliseconds(root.GetProperty("ca").GetInt64());
-            var updatedAt = DateTimeOffset.FromUnixTimeMilliseconds(root.GetProperty("ua").GetInt64());
-
-            DateTimeOffset? expiresAt = root.TryGetProperty("ea", out var ea) && ea.ValueKind == System.Text.Json.JsonValueKind.Number
-                ? DateTimeOffset.FromUnixTimeMilliseconds(ea.GetInt64())
-                : null;
-
-            return new MemoryEntry(key, value, createdAt, updatedAt, expiresAt);
+            return new MemoryEntry(
+                key,
+                parsed.V ?? string.Empty,
+                DateTimeOffset.FromUnixTimeMilliseconds(parsed.Ca),
+                DateTimeOffset.FromUnixTimeMilliseconds(parsed.Ua),
+                parsed.Ea is long ea ? DateTimeOffset.FromUnixTimeMilliseconds(ea) : null);
         }
 
-        private static void AppendJsonString(System.Text.StringBuilder sb, string value)
-        {
-            sb.Append('"');
-            foreach (var c in value)
-            {
-                switch (c)
-                {
-                    case '\\': sb.Append("\\\\"); break;
-                    case '"': sb.Append("\\\""); break;
-                    case '\n': sb.Append("\\n"); break;
-                    case '\r': sb.Append("\\r"); break;
-                    case '\t': sb.Append("\\t"); break;
-                    case '\b': sb.Append("\\b"); break;
-                    case '\f': sb.Append("\\f"); break;
-                    default:
-                        if (c < ' ')
-                        {
-                            sb.Append("\\u").Append(((int)c).ToString("x4", CultureInfo.InvariantCulture));
-                        }
-                        else
-                        {
-                            sb.Append(c);
-                        }
-                        break;
-                }
-            }
-            sb.Append('"');
-        }
+        // Camel-case naming via JsonSerializerDefaults.Web keeps the wire
+        // format compact ("v"/"ca"/"ua"/"ea") while still letting the type
+        // be reflected over.
+        private sealed record Envelope(string V, long Ca, long Ua, long? Ea);
     }
 }

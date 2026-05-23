@@ -9,6 +9,7 @@
     <ProjectReference Include="..\..\src\Sentirum.Agent.Memory.Abstractions\Sentirum.Agent.Memory.Abstractions.csproj" />
     <ProjectReference Include="..\..\src\Sentirum.Agent.Memory.InMemory\Sentirum.Agent.Memory.InMemory.csproj" />
     <ProjectReference Include="..\..\src\Sentirum.Agent.Memory.EntityFrameworkCore\Sentirum.Agent.Memory.EntityFrameworkCore.csproj" />
+    <ProjectReference Include="..\..\src\Sentirum.Agent.Memory.Redis\Sentirum.Agent.Memory.Redis.csproj" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
   </ItemGroup>
 

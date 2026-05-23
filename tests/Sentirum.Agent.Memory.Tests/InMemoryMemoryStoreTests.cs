@@ -104,5 +104,72 @@ public class InMemoryMemoryStoreTests
         leftovers.Should().Be(0);
     }
 
+    [Fact]
+    public async Task SetAsync_Concurrent_OnSameKey_LastWriteWinsWithoutException()
+    {
+        var store = new InMemoryMemoryStore();
+        var partition = MemoryPartition.ForUser("u-1");
+
+        const int Writers = 64;
+        var tasks = new Task[Writers];
+        for (var i = 0; i < Writers; i++)
+        {
+            var v = i.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            tasks[i] = Task.Run(() => store.SetAsync(partition, "k", v));
+        }
+        await Task.WhenAll(tasks);
+
+        var entry = await store.GetAsync(partition, "k");
+        entry.Should().NotBeNull();
+        var asInt = int.Parse(entry!.Value.Value, System.Globalization.CultureInfo.InvariantCulture);
+        asInt.Should().BeInRange(0, Writers - 1);
+    }
+
+    [Fact]
+    public async Task SetAsync_Update_PreservesCreatedAt()
+    {
+        var store = new InMemoryMemoryStore();
+        var partition = MemoryPartition.ForUser("u-1");
+
+        await store.SetAsync(partition, "k", "first");
+        var first = (await store.GetAsync(partition, "k"))!.Value;
+
+        await Task.Delay(10);
+        await store.SetAsync(partition, "k", "second");
+        var second = (await store.GetAsync(partition, "k"))!.Value;
+
+        second.CreatedAt.Should().Be(first.CreatedAt, "updates must keep the original CreatedAt stamp.");
+        second.UpdatedAt.Should().BeAfter(first.UpdatedAt);
+    }
+
+    [Fact]
+    public async Task DeleteAsync_OnMissingKey_ReturnsFalse()
+    {
+        var store = new InMemoryMemoryStore();
+        var removed = await store.DeleteAsync(MemoryPartition.ForUser("u-1"), "nope");
+        removed.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task ClearAsync_OnMissingPartition_ReturnsZero()
+    {
+        var store = new InMemoryMemoryStore();
+        var removed = await store.ClearAsync(MemoryPartition.ForUser("u-never"));
+        removed.Should().Be(0);
+    }
+
+    [Theory]
+    [InlineData(MemoryScope.Global, "a", null, null)]
+    [InlineData(MemoryScope.Global, null, "u", null)]
+    [InlineData(MemoryScope.Agent, "a", "u", null)]
+    [InlineData(MemoryScope.User, "a", "u", null)]
+    [InlineData(MemoryScope.Session, null, "u", "s")]
+    public void Validate_RejectsOverSpecifiedPartitions(MemoryScope scope, string? agentId, string? userId, string? sessionId)
+    {
+        var partition = new MemoryPartition(scope, agentId, userId, sessionId);
+        var act = partition.Validate;
+        act.Should().Throw<InvalidOperationException>().WithMessage("*must not specify*");
+    }
+
     private sealed record Profile(string Name, int Age, string City);
 }

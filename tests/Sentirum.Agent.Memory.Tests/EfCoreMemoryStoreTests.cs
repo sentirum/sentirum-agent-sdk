@@ -108,4 +108,36 @@ public class EfCoreMemoryStoreTests : IAsyncLifetime
         }
         count.Should().Be(1);
     }
+
+    [Fact]
+    public async Task GetAsync_OnExpiredRow_ReturnsNullAndDoesNotMarkChangeTrackerModified()
+    {
+        var partition = MemoryPartition.ForUser("u-1");
+        await _store!.SetAsync(partition, "k", "v", absoluteExpiration: DateTimeOffset.UtcNow.AddMilliseconds(-1));
+
+        // Reset the change tracker so we only see what GetAsync touches.
+        _context!.ChangeTracker.Clear();
+
+        var entry = await _store.GetAsync(partition, "k");
+
+        entry.Should().BeNull();
+        _context.ChangeTracker.Entries<SentirumMemoryRecord>().Should().BeEmpty(
+            "GetAsync must use AsNoTracking and must not delete the expired row.");
+    }
+
+    [Fact]
+    public async Task ListAsync_FiltersExpiredRows()
+    {
+        var partition = MemoryPartition.ForUser("u-1");
+        await _store!.SetAsync(partition, "alive", "1");
+        await _store.SetAsync(partition, "dead", "2", absoluteExpiration: DateTimeOffset.UtcNow.AddMilliseconds(-1));
+
+        var keys = new System.Collections.Generic.List<string>();
+        await foreach (var entry in _store.ListAsync(partition))
+        {
+            keys.Add(entry.Key);
+        }
+
+        keys.Should().ContainSingle().Which.Should().Be("alive");
+    }
 }

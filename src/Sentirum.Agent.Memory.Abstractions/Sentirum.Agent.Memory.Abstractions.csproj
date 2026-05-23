@@ -7,8 +7,4 @@
     <PackageId>Sentirum.Agent.Memory.Abstractions</PackageId>
   </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Sentirum.Agent.Abstractions\Sentirum.Agent.Abstractions.csproj" />
-  </ItemGroup>
-
 </Project>

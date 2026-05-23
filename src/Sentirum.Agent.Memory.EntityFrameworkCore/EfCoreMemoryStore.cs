@@ -46,6 +46,13 @@ public sealed class EfCoreMemoryStore<TContext> : ISentirumMemoryStore
     private DbSet<SentirumMemoryRecord> Set => _context.Set<SentirumMemoryRecord>();
 
     /// <inheritdoc />
+    /// <remarks>
+    /// Implemented as an atomic upsert via
+    /// <c>ExecuteUpdateAsync</c> + conditional <c>Add</c>: we try to update
+    /// first and only fall back to insert when no row exists. Two concurrent
+    /// writers therefore converge on a single row instead of racing on the
+    /// unique index and surfacing <c>DbUpdateException</c>.
+    /// </remarks>
     public async Task SetAsync(
         MemoryPartition partition,
         string key,
@@ -58,35 +65,75 @@ public sealed class EfCoreMemoryStore<TContext> : ISentirumMemoryStore
         partition.Validate();
         cancellationToken.ThrowIfCancellationRequested();
 
-        var existing = await FindAsync(partition, key, cancellationToken).ConfigureAwait(false);
         var now = DateTimeOffset.UtcNow;
 
-        if (existing is null)
+        // Step 1: attempt the update path. Set-based ExecuteUpdateAsync
+        // bypasses the change tracker and runs as a single round-trip.
+        var updated = await ApplyPartition(Set, partition)
+            .Where(r => r.Key == key)
+            .ExecuteUpdateAsync(
+                setters => setters
+                    .SetProperty(r => r.Value, value)
+                    .SetProperty(r => r.UpdatedAt, now)
+                    .SetProperty(r => r.ExpiresAt, absoluteExpiration),
+                cancellationToken)
+            .ConfigureAwait(false);
+
+        if (updated > 0)
         {
-            Set.Add(new SentirumMemoryRecord
-            {
-                Scope = (int)partition.Scope,
-                AgentId = partition.AgentId,
-                UserId = partition.UserId,
-                SessionId = partition.SessionId,
-                Key = key,
-                Value = value,
-                CreatedAt = now,
-                UpdatedAt = now,
-                ExpiresAt = absoluteExpiration,
-            });
-        }
-        else
-        {
-            existing.Value = value;
-            existing.UpdatedAt = now;
-            existing.ExpiresAt = absoluteExpiration;
+            return;
         }
 
-        await _context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        // Step 2: insert path. We translate the unique-index violation that
+        // can happen when two callers reach this branch concurrently into
+        // an updated path so the caller observes upsert semantics.
+        Set.Add(new SentirumMemoryRecord
+        {
+            Scope = (int)partition.Scope,
+            AgentId = partition.AgentId,
+            UserId = partition.UserId,
+            SessionId = partition.SessionId,
+            Key = key,
+            Value = value,
+            CreatedAt = now,
+            UpdatedAt = now,
+            ExpiresAt = absoluteExpiration,
+        });
+
+        try
+        {
+            await _context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch (DbUpdateException)
+        {
+            // A concurrent insert won the race; detach our pending entity
+            // and run the update path instead.
+            foreach (var entry in _context.ChangeTracker
+                .Entries<SentirumMemoryRecord>()
+                .ToList())
+            {
+                entry.State = EntityState.Detached;
+            }
+
+            await ApplyPartition(Set, partition)
+                .Where(r => r.Key == key)
+                .ExecuteUpdateAsync(
+                    setters => setters
+                        .SetProperty(r => r.Value, value)
+                        .SetProperty(r => r.UpdatedAt, now)
+                        .SetProperty(r => r.ExpiresAt, absoluteExpiration),
+                    cancellationToken)
+                .ConfigureAwait(false);
+        }
     }
 
     /// <inheritdoc />
+    /// <remarks>
+    /// Reads are side-effect free: expired rows are filtered out but not
+    /// deleted. Cleanup belongs to a separate sweeper job (out of scope
+    /// for v0.1; tracked in ADR-0007). This keeps <c>GetAsync</c> safe to
+    /// compose inside an ambient transaction.
+    /// </remarks>
     public async Task<MemoryEntry?> GetAsync(
         MemoryPartition partition,
         string key,
@@ -96,16 +143,14 @@ public sealed class EfCoreMemoryStore<TContext> : ISentirumMemoryStore
         partition.Validate();
         cancellationToken.ThrowIfCancellationRequested();
 
-        var row = await FindAsync(partition, key, cancellationToken).ConfigureAwait(false);
-        if (row is null)
-        {
-            return null;
-        }
+        // AsNoTracking so the read does not pollute the DbContext's change
+        // tracker; matches the ListAsync path.
+        var row = await ApplyPartition(Set.AsNoTracking(), partition)
+            .FirstOrDefaultAsync(r => r.Key == key, cancellationToken)
+            .ConfigureAwait(false);
 
-        if (IsExpired(row))
+        if (row is null || IsExpired(row))
         {
-            Set.Remove(row);
-            await _context.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
             return null;
         }
 

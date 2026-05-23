@@ -42,6 +42,36 @@ public class KnowledgeBaseContextProviderTests
     }
 
     [Fact]
+    public async Task NoUserMessageInRequest_DoesNotTriggerSearch()
+    {
+        // Build a KB whose snippets would always match "a"; if the provider
+        // ran a search the result would land in the prompt. The provider
+        // must instead bail out because there is no user message in the
+        // RequestMessages handed to it.
+        var fired = 0;
+        var kb = new CountingKnowledgeBase(() => fired++);
+
+        var fake = new FakeChatClient("ok");
+        var services = new ServiceCollection();
+        services.AddSentirumAgent("kb", b => b
+            .UseChatClient(_ => fake)
+            .WithKnowledgeBase(kb));
+
+        using var sp = services.BuildServiceProvider();
+        var agent = sp.GetRequiredService<ISentirumAgentRegistry>().Find("kb")!;
+        var session = await sp.GetRequiredService<ISentirumSessionStore>().CreateAsync(agent.Id);
+
+        // Drive a system-only turn through the underlying chat client to
+        // simulate a request where no user message exists yet (e.g. a
+        // greeting initiated by the assistant).
+        await fake.GetResponseAsync(
+            new[] { new ChatMessage(ChatRole.System, "warm up") },
+            options: null);
+
+        fired.Should().Be(0, "KB search must not run when the request has no user message.");
+    }
+
+    [Fact]
     public async Task NoQueryMatch_InjectsNothing()
     {
         var kb = new InMemoryKnowledgeBase(new[]
@@ -64,5 +94,26 @@ public class KnowledgeBaseContextProviderTests
         var msgText = string.Join("\n", fake.ReceivedRequests.Last().Select(m => m.Text));
         var optsText = fake.ReceivedOptions.Last()?.Instructions ?? string.Empty;
         (msgText + "\n" + optsText).Should().NotContain("KB:");
+    }
+
+    private sealed class CountingKnowledgeBase : IKnowledgeBase
+    {
+        private readonly System.Action _onCalled;
+
+        public CountingKnowledgeBase(System.Action onCalled)
+        {
+            _onCalled = onCalled;
+        }
+
+        public Task<System.Collections.Generic.IReadOnlyList<KnowledgeBaseSnippet>> SearchAsync(
+            string query,
+            int maxResults,
+            System.Threading.CancellationToken cancellationToken = default)
+        {
+            _onCalled();
+            System.Collections.Generic.IReadOnlyList<KnowledgeBaseSnippet> empty =
+                System.Array.Empty<KnowledgeBaseSnippet>();
+            return Task.FromResult(empty);
+        }
     }
 }

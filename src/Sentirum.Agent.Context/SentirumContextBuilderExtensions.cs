@@ -104,7 +104,10 @@ public static class SentirumContextBuilderExtensions
 
     /// <summary>
     /// Convenience overload that targets a fixed user partition keyed off
-    /// <paramref name="userId"/>.
+    /// <paramref name="userId"/>. Prefer the
+    /// <see cref="WithUserMemory(ISentirumAgentBuilder, Func{MessageAIContextProvider.InvokingContext, string}, string, int)"/>
+    /// overload in multi-tenant hosts so the user id is resolved per
+    /// request.
     /// </summary>
     public static ISentirumAgentBuilder WithUserMemory(
         this ISentirumAgentBuilder builder,
@@ -114,6 +117,43 @@ public static class SentirumContextBuilderExtensions
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(userId);
         return builder.WithMemoryContext(_ => MemoryPartition.ForUser(userId), heading, maxEntries);
+    }
+
+    /// <summary>
+    /// Multi-tenant overload: resolves the user id per request from the
+    /// <see cref="MessageAIContextProvider.InvokingContext"/>. Callers
+    /// typically read the id from an <c>IHttpContextAccessor</c>, an
+    /// ambient request scope, or the active session.
+    /// </summary>
+    public static ISentirumAgentBuilder WithUserMemory(
+        this ISentirumAgentBuilder builder,
+        Func<MessageAIContextProvider.InvokingContext, string> userIdSelector,
+        string heading = "Known facts about the user:",
+        int maxEntries = 20)
+    {
+        ArgumentNullException.ThrowIfNull(userIdSelector);
+        return builder.WithMemoryContext(
+            ctx => MemoryPartition.ForUser(userIdSelector(ctx)),
+            heading,
+            maxEntries);
+    }
+
+    /// <summary>
+    /// Multi-tenant overload: resolves the session id per request from the
+    /// invoking context (typically a custom id stashed on
+    /// <c>AgentSession.StateBag</c>).
+    /// </summary>
+    public static ISentirumAgentBuilder WithSessionMemory(
+        this ISentirumAgentBuilder builder,
+        Func<MessageAIContextProvider.InvokingContext, string> sessionIdSelector,
+        string heading = "Session notes:",
+        int maxEntries = 20)
+    {
+        ArgumentNullException.ThrowIfNull(sessionIdSelector);
+        return builder.WithMemoryContext(
+            ctx => MemoryPartition.ForSession(sessionIdSelector(ctx)),
+            heading,
+            maxEntries);
     }
 
     /// <summary>
