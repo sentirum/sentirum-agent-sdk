@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Sentirum.Agent.Sessions.Tree.Tests</RootNamespace>
+    <AssemblyName>Sentirum.Agent.Sessions.Tree.Tests</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Sentirum.Agent.Abstractions\Sentirum.Agent.Abstractions.csproj" />
+    <ProjectReference Include="..\..\src\Sentirum.Agent.Core\Sentirum.Agent.Core.csproj" />
+    <ProjectReference Include="..\..\src\Sentirum.Agent.Hosting\Sentirum.Agent.Hosting.csproj" />
+    <ProjectReference Include="..\..\src\Sentirum.Agent.Sessions.Tree\Sentirum.Agent.Sessions.Tree.csproj" />
+  </ItemGroup>
+
+</Project>

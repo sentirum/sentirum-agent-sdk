@@ -16,7 +16,8 @@ public sealed class SentirumSession : ISentirumSession
         string id,
         string agentId,
         AgentSession? innerSession,
-        string? parentId = null)
+        string? parentId = null,
+        int forkPointMessageCount = 0)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(id);
         ArgumentException.ThrowIfNullOrWhiteSpace(agentId);
@@ -25,6 +26,7 @@ public sealed class SentirumSession : ISentirumSession
         AgentId = agentId;
         ParentId = parentId;
         InnerSession = innerSession;
+        ForkPointMessageCount = forkPointMessageCount;
     }
 
     /// <inheritdoc />
@@ -38,4 +40,14 @@ public sealed class SentirumSession : ISentirumSession
 
     /// <inheritdoc />
     public AgentSession? InnerSession { get; }
+
+    /// <summary>
+    /// Gets the number of messages that existed in the conversation at the
+    /// moment this session was forked from its parent. Zero for root sessions.
+    /// </summary>
+    /// <remarks>
+    /// Tree merges use this to identify the divergence point precisely
+    /// without relying on identity equality between deserialized messages.
+    /// </remarks>
+    public int ForkPointMessageCount { get; }
 }

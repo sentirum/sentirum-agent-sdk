@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Sentirum.Agent.Sessions.Tree</RootNamespace>
+    <AssemblyName>Sentirum.Agent.Sessions.Tree</AssemblyName>
+    <Description>Tree-based session store for the Sentirum Agent SDK. Fork conversations, run alternative branches in isolation, merge results back, and visualize the session tree.</Description>
+    <PackageId>Sentirum.Agent.Sessions.Tree</PackageId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Sentirum.Agent.Abstractions\Sentirum.Agent.Abstractions.csproj" />
+    <ProjectReference Include="..\Sentirum.Agent.Core\Sentirum.Agent.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Agents.AI" />
+    <PackageReference Include="Microsoft.Extensions.AI" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Sentirum.Agent.Sessions.Tree.Tests" />
+  </ItemGroup>
+
+</Project>

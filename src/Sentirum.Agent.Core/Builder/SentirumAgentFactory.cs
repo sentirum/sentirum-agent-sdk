@@ -49,11 +49,17 @@ public static class SentirumAgentFactory
 
         var chatClient = chatClientBuilder.Build(serviceProvider);
 
-        // 2. Resolve the options pipeline.
+        // 2. Resolve the options pipeline. Deferred extensions (such as
+        // WithTools<T>() in Sentirum.Agent.Tools.Core) need the DI scope to
+        // be discoverable. We surface it via an AsyncLocal scope that lives
+        // for the duration of the options pipeline.
         var options = new SentirumAgentOptions { Name = builder.Name };
-        foreach (var configure in builder.OptionsConfigurations)
+        using (SentirumServiceProviderAccessor.Push(serviceProvider))
         {
-            configure(options);
+            foreach (var configure in builder.OptionsConfigurations)
+            {
+                configure(options);
+            }
         }
 
         // 3. Build the underlying MAF ChatClientAgent. Instructions are a ctor

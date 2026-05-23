@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Sentirum.Samples.ToolCalling</RootNamespace>
+    <AssemblyName>Sentirum.Samples.ToolCalling</AssemblyName>
+    <UserSecretsId>sentirum-tool-calling</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Sentirum.Agent.Abstractions\Sentirum.Agent.Abstractions.csproj" />
+    <ProjectReference Include="..\..\src\Sentirum.Agent.Core\Sentirum.Agent.Core.csproj" />
+    <ProjectReference Include="..\..\src\Sentirum.Agent.Hosting\Sentirum.Agent.Hosting.csproj" />
+    <ProjectReference Include="..\..\src\Sentirum.Agent.Providers.OpenAI\Sentirum.Agent.Providers.OpenAI.csproj" />
+    <ProjectReference Include="..\..\src\Sentirum.Agent.Providers.ZAI\Sentirum.Agent.Providers.ZAI.csproj" />
+    <ProjectReference Include="..\..\src\Sentirum.Agent.Tools.Core\Sentirum.Agent.Tools.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+  </ItemGroup>
+
+</Project>

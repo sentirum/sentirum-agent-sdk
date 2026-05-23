@@ -39,9 +39,10 @@ roadmap. The current published surface is:
 | `Sentirum.Agent.Providers.Ollama` | Local LLM via OllamaSharp. |
 | `Sentirum.Agent.Providers.Custom` | `SentirumChatClientBase` — base class with retry / timeout / structured logging for fully custom providers. |
 | `Sentirum.Agent.Providers.ZAI` | Z.AI (GLM) convenience: `UseZAI(model, key, protocol)` + thinking mode helpers. |
+| `Sentirum.Agent.Tools.Core` | `[Tool]` attribute + reflection-based discovery + `WithTools<T>()`. |
+| `Sentirum.Agent.Sessions.Tree` | Tree-based sessions: fork / merge / walk / visualize. |
 
-More packages (Sessions.Tree, Workflows, CustomerSupport) land per the
-milestone plan below.
+More packages (Workflows, CustomerSupport) land per the milestone plan below.
 
 ## Target framework
 
@@ -62,6 +63,7 @@ dotnet test   Sentirum.Agent.slnx -c Release --no-build
 | **M0** ✅ | Solution foundation, CPM, CI, `Abstractions` package, sample. |
 | **M1** ✅ | Core runtime + Hosting + OpenAI provider + `01-HelloAgent` end-to-end. |
 | **M2** ✅ | Multi-provider: Anthropic, Ollama, OpenAI/Anthropic-compatible adapters, `SentirumChatClientBase`, Z.AI convenience + `02-MultiProvider`. |
+| **M3** ✅ | Tools (`[Tool]` + `WithTools<T>()`) and tree sessions (fork / merge / walk / visualize) + `03-ToolCalling` + `04-SessionForking`. |
 | **M2** | Custom providers (`SentirumChatClientBase`, OpenAI-compatible, Anthropic, Ollama). |
 | **M3** | Tool registry + tree sessions + MCP. |
 | **M4** | Memory + context providers + RAG. |

@@ -2,6 +2,8 @@
   <Folder Name="/samples/">
     <Project Path="samples/01-HelloAgent/01-HelloAgent.csproj" />
     <Project Path="samples/02-MultiProvider/02-MultiProvider.csproj" />
+    <Project Path="samples/03-ToolCalling/03-ToolCalling.csproj" />
+    <Project Path="samples/04-SessionForking/04-SessionForking.csproj" />
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/Sentirum.Agent.Abstractions/Sentirum.Agent.Abstractions.csproj" />
@@ -14,10 +16,14 @@
     <Project Path="src/Sentirum.Agent.Providers.OpenAI/Sentirum.Agent.Providers.OpenAI.csproj" />
     <Project Path="src/Sentirum.Agent.Providers.OpenAICompatible/Sentirum.Agent.Providers.OpenAICompatible.csproj" />
     <Project Path="src/Sentirum.Agent.Providers.ZAI/Sentirum.Agent.Providers.ZAI.csproj" />
+    <Project Path="src/Sentirum.Agent.Sessions.Tree/Sentirum.Agent.Sessions.Tree.csproj" />
+    <Project Path="src/Sentirum.Agent.Tools.Core/Sentirum.Agent.Tools.Core.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Sentirum.Agent.Abstractions.Tests/Sentirum.Agent.Abstractions.Tests.csproj" />
     <Project Path="tests/Sentirum.Agent.Core.Tests/Sentirum.Agent.Core.Tests.csproj" />
     <Project Path="tests/Sentirum.Agent.Providers.Tests/Sentirum.Agent.Providers.Tests.csproj" />
+    <Project Path="tests/Sentirum.Agent.Sessions.Tree.Tests/Sentirum.Agent.Sessions.Tree.Tests.csproj" />
+    <Project Path="tests/Sentirum.Agent.Tools.Tests/Sentirum.Agent.Tools.Tests.csproj" />
   </Folder>
 </Solution>
