@@ -149,3 +149,62 @@ two-method interface.
   rejected because it breaks every custom workflow that does not
   declare `TurnToken` as a valid input. The mode-flag approach pays
   one boolean and removes the foot-gun.
+
+## M5.5 Hardening Amendments (2026-05-23)
+
+The Gemini + self-review code-review pass surfaced critical issues
+that required amendments to the original design.
+
+### C1: Gate re-fire safety — `CorrelationId` + `RequestId` routing
+
+The original `WithApprovalGate` used a `Dictionary<string, ApprovalRequest>`
+keyed on `GateId` inside a shared closure. When the same gate fired
+twice in a single run (e.g. two refund items), the second request
+overwrote the first, causing the projector to receive the wrong
+context. **Fix:** removed the shared dictionary entirely; each
+`ApprovalRequest` now carries a composer-generated `CorrelationId`
+and the MAF `ExternalRequest.RequestId`. The `ApprovalResponse` echoes
+both. The dispatcher routes by `RequestId` (out-of-order safe) and
+falls back to `GateId` for backward compatibility. The projector
+reconstructs the original request from the response payload alone,
+eliminating all run-scoped mutable state.
+
+### C2: Polly Retry/Timeout order
+
+Retry was INNERMOST and Timeout OUTERMOST. A slow request timed out
+with `OperationCanceledException`, which bypassed the retry filter
+(`ex is not OperationCanceledException`). **Fix:** Retry is now
+OUTERMOST, Timeout INNERMOST. Timeout throws `TimeoutRejectedException`,
+which retry catches and re-attempts.
+
+### C3: Redis TTL data loss
+
+`RedisMemoryStore.SetAsync` with `absoluteExpiration = null` did not
+call `KeyPersistAsync`, leaving a stale TTL from a prior write. The
+hash silently expired. **Fix:** explicit `KeyPersistAsync` when no
+deadline is supplied.
+
+### H1: EF Core tracker scope pollution
+
+`SetAsync`'s `catch (DbUpdateException)` detached **all** entries in
+the change tracker, including user-owned entities. **Fix:** detach
+only the single `EntityEntry` we added.
+
+### H4: `TurnToken` silent failure
+
+`TrySendMessageAsync` return value was ignored; `false` produced a
+silent deadlock. **Fix:** throw `InvalidOperationException` with a
+diagnostic message when the token cannot be dispatched.
+
+### P1–P3: Performance
+
+- EF `DeleteAsync` / `ClearAsync` now use `ExecuteDeleteAsync`
+  single-round-trip.
+- Redis `ListAsync` removed `Task.Yield()` per entry (500 entries =
+  500 context switches).
+- Z.AI `JsonSerializer.Serialize` + `JsonNode.Parse` replaced with
+  direct `JsonObject` construction.
+- `ToolDiscovery` gained a `ConcurrentDictionary<Type, MethodMetadata[]>`
+  cache so repeated discovery on the same type skips reflection.
+- Streaming timeout reset after every chunk (`CancelAfter` reset in
+  the enumerator loop) so slow-but-steady streams survive.

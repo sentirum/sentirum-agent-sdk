@@ -214,6 +214,10 @@ public abstract class SentirumChatClientBase : IChatClient
                     throw;
                 }
 
+                // Reset the idle timeout after every chunk so a slow but
+                // steady stream does not get killed by a fixed total limit.
+                timeoutCts?.CancelAfter(_options.Timeout);
+
                 yield return current;
             }
         }

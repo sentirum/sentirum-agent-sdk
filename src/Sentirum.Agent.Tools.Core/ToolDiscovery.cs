@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -14,6 +15,14 @@ namespace Sentirum.Agent.Tools;
 public static class ToolDiscovery
 {
     /// <summary>
+    /// Type-level metadata cache so repeated <see cref="Discover"/> calls
+    /// against the same toolset type skip reflection after the first hit.
+    /// The cache stores per-method metadata (MethodInfo, attribute, delegate
+    /// type) but defers instance-bound delegate creation so different
+    /// instances of the same type still get their own bound delegates.
+    /// </summary>
+    private static readonly ConcurrentDictionary<Type, MethodMetadata[]> s_metadataCache = new();
+    /// <summary>
     /// Discovers tools defined on <paramref name="toolsetInstance"/> and
     /// returns them as a sequence of <see cref="AIFunction"/> instances.
     /// </summary>
@@ -22,12 +31,22 @@ public static class ToolDiscovery
         ArgumentNullException.ThrowIfNull(toolsetInstance);
 
         var type = toolsetInstance.GetType();
+        var metadata = s_metadataCache.GetOrAdd(type, static t => ScanType(t));
 
+        foreach (var m in metadata)
+        {
+            yield return BindAndCreate(m, toolsetInstance);
+        }
+    }
+
+    private static MethodMetadata[] ScanType(Type type)
+    {
         const BindingFlags MethodFlags = BindingFlags.Public
             | BindingFlags.NonPublic
             | BindingFlags.Instance
             | BindingFlags.Static;
 
+        var list = new List<MethodMetadata>();
         foreach (var method in type.GetMethods(MethodFlags))
         {
             var attribute = method.GetCustomAttribute<ToolAttribute>(inherit: true);
@@ -36,36 +55,31 @@ public static class ToolDiscovery
                 continue;
             }
 
-            yield return ToAIFunction(method, attribute, toolsetInstance);
+            ValidateToolMethod(method);
+            var delegateType = GetDelegateType(method);
+            list.Add(new MethodMetadata(method, attribute, delegateType));
         }
+        return list.ToArray();
     }
 
-    private static AIFunction ToAIFunction(
-        MethodInfo method,
-        ToolAttribute attribute,
-        object toolsetInstance)
+    private static AIFunction BindAndCreate(MethodMetadata meta, object toolsetInstance)
     {
-        ValidateToolMethod(method);
-
-        var resolvedName = attribute.Name ?? StripAsyncSuffix(method.Name);
-
+        var resolvedName = meta.Attribute.Name ?? StripAsyncSuffix(meta.Method.Name);
         var options = new AIFunctionFactoryOptions
         {
             Name = resolvedName,
-            Description = attribute.Description,
+            Description = meta.Attribute.Description,
         };
 
-        // Static methods don't bind to an instance.
-        var target = method.IsStatic ? null : toolsetInstance;
-
-        // CreateDelegate over the method bound to the target instance gives
-        // AIFunctionFactory a strongly-typed callable so it can generate the
-        // JSON schema with full parameter metadata.
-        var delegateType = GetDelegateType(method);
-        var boundDelegate = method.CreateDelegate(delegateType, target);
-
+        var target = meta.Method.IsStatic ? null : toolsetInstance;
+        var boundDelegate = meta.Method.CreateDelegate(meta.DelegateType, target);
         return AIFunctionFactory.Create(boundDelegate, options);
     }
+
+    private readonly record struct MethodMetadata(
+        MethodInfo Method,
+        ToolAttribute Attribute,
+        Type DelegateType);
 
     /// <summary>
     /// Validates that <paramref name="method"/> can be exposed as a tool.

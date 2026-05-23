@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
@@ -46,8 +45,12 @@ internal sealed class ZaiThinkingChatClient : DelegatingChatClient
         resolved.AdditionalProperties ??= new AdditionalPropertiesDictionary();
 
         // Z.AI expects: { "thinking": { "type": "enabled" | "disabled" } }
-        resolved.AdditionalProperties["thinking"] = JsonNode.Parse(
-            JsonSerializer.Serialize(new { type = _enabled ? "enabled" : "disabled" }));
+        // Using JsonObject directly avoids the Serialize→Parse round-trip
+        // and eliminates a short-lived string allocation per request.
+        resolved.AdditionalProperties["thinking"] = new JsonObject
+        {
+            ["type"] = _enabled ? "enabled" : "disabled",
+        };
 
         return resolved;
     }
