@@ -20,6 +20,11 @@ public static class OpenAiSentirumAgentBuilderExtensions
     /// Optional API key. When omitted, the underlying SDK falls back to the
     /// <c>OPENAI_API_KEY</c> environment variable.
     /// </param>
+    /// <param name="endpoint">
+    /// Optional base endpoint override. Defaults to the public OpenAI API.
+    /// Supply a different URI to target an OpenAI-compatible provider while
+    /// keeping the OpenAI SDK behavior.
+    /// </param>
     /// <param name="configureFunctionInvocation">
     /// When <see langword="true"/> (the default), the chat client pipeline
     /// adds function-invocation middleware so tool calls dispatched to
@@ -30,6 +35,7 @@ public static class OpenAiSentirumAgentBuilderExtensions
         this ISentirumAgentBuilder builder,
         string model,
         string? apiKey = null,
+        Uri? endpoint = null,
         bool configureFunctionInvocation = true)
     {
         ArgumentNullException.ThrowIfNull(builder);
@@ -41,7 +47,13 @@ public static class OpenAiSentirumAgentBuilderExtensions
                 "An OpenAI API key was not provided and the OPENAI_API_KEY " +
                 "environment variable is not set.");
 
-        var openAiClient = new OpenAIClient(new ApiKeyCredential(resolvedKey));
+        var clientOptions = new OpenAIClientOptions();
+        if (endpoint is not null)
+        {
+            clientOptions.Endpoint = endpoint;
+        }
+
+        var openAiClient = new OpenAIClient(new ApiKeyCredential(resolvedKey), clientOptions);
 
         builder
             .Configure(o => o.Model = model)

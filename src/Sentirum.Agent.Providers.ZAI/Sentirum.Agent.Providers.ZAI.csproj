@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Sentirum.Agent.Providers.ZAI</RootNamespace>
+    <AssemblyName>Sentirum.Agent.Providers.ZAI</AssemblyName>
+    <Description>Z.AI (GLM) provider for the Sentirum Agent SDK. Supports both Z.AI's OpenAI-compatible and Anthropic-compatible endpoints with GLM-specific helpers (thinking mode, reasoning content).</Description>
+    <PackageId>Sentirum.Agent.Providers.ZAI</PackageId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Sentirum.Agent.Abstractions\Sentirum.Agent.Abstractions.csproj" />
+    <ProjectReference Include="..\Sentirum.Agent.Core\Sentirum.Agent.Core.csproj" />
+    <ProjectReference Include="..\Sentirum.Agent.Providers.OpenAICompatible\Sentirum.Agent.Providers.OpenAICompatible.csproj" />
+    <ProjectReference Include="..\Sentirum.Agent.Providers.AnthropicCompatible\Sentirum.Agent.Providers.AnthropicCompatible.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.AI" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Sentirum.Agent.Providers.OpenAICompatible</RootNamespace>
+    <AssemblyName>Sentirum.Agent.Providers.OpenAICompatible</AssemblyName>
+    <Description>OpenAI-compatible provider for the Sentirum Agent SDK. Targets any endpoint that speaks the OpenAI Chat Completions wire format: Groq, Together, vLLM, LM Studio, Z.AI, OpenRouter, and more.</Description>
+    <PackageId>Sentirum.Agent.Providers.OpenAICompatible</PackageId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Sentirum.Agent.Abstractions\Sentirum.Agent.Abstractions.csproj" />
+    <ProjectReference Include="..\Sentirum.Agent.Core\Sentirum.Agent.Core.csproj" />
+    <ProjectReference Include="..\Sentirum.Agent.Providers.OpenAI\Sentirum.Agent.Providers.OpenAI.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.AI" />
+  </ItemGroup>
+
+</Project>

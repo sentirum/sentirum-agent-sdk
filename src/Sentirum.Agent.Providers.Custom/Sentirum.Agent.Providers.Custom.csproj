@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Sentirum.Agent.Providers.Custom</RootNamespace>
+    <AssemblyName>Sentirum.Agent.Providers.Custom</AssemblyName>
+    <Description>Base classes and helpers for writing fully custom IChatClient providers for the Sentirum Agent SDK. Bring your HTTP/gRPC/proprietary endpoint, get retries, rate limiting, logging, and token tracking for free.</Description>
+    <PackageId>Sentirum.Agent.Providers.Custom</PackageId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Sentirum.Agent.Abstractions\Sentirum.Agent.Abstractions.csproj" />
+    <ProjectReference Include="..\Sentirum.Agent.Core\Sentirum.Agent.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.AI" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    <PackageReference Include="Polly" />
+    <PackageReference Include="Polly.Extensions" />
+  </ItemGroup>
+
+</Project>

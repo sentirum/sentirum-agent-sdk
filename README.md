@@ -32,10 +32,16 @@ roadmap. The current published surface is:
 | `Sentirum.Agent.Abstractions` | Interfaces, options, and DTOs — the contract everything else builds against. |
 | `Sentirum.Agent.Core` | Default runtime: agent, session, registry, builder, in-memory session store. |
 | `Sentirum.Agent.Hosting` | `IServiceCollection.AddSentirumAgent(...)` registration. |
-| `Sentirum.Agent.Providers.OpenAI` | OpenAI provider wrapped behind `IChatClient`. |
+| `Sentirum.Agent.Providers.OpenAI` | OpenAI provider with optional endpoint override. |
+| `Sentirum.Agent.Providers.OpenAICompatible` | Any OpenAI-compatible endpoint (Groq, Together, vLLM, LM Studio, Z.AI, OpenRouter). |
+| `Sentirum.Agent.Providers.Anthropic` | Anthropic Messages API. |
+| `Sentirum.Agent.Providers.AnthropicCompatible` | Any Anthropic-compatible endpoint (Bedrock proxy, Z.AI Anthropic route). |
+| `Sentirum.Agent.Providers.Ollama` | Local LLM via OllamaSharp. |
+| `Sentirum.Agent.Providers.Custom` | `SentirumChatClientBase` — base class with retry / timeout / structured logging for fully custom providers. |
+| `Sentirum.Agent.Providers.ZAI` | Z.AI (GLM) convenience: `UseZAI(model, key, protocol)` + thinking mode helpers. |
 
-More packages (additional providers, Sessions.Tree, Workflows, CustomerSupport)
-land per the milestone plan below.
+More packages (Sessions.Tree, Workflows, CustomerSupport) land per the
+milestone plan below.
 
 ## Target framework
 
@@ -55,6 +61,7 @@ dotnet test   Sentirum.Agent.slnx -c Release --no-build
 | --- | --- |
 | **M0** ✅ | Solution foundation, CPM, CI, `Abstractions` package, sample. |
 | **M1** ✅ | Core runtime + Hosting + OpenAI provider + `01-HelloAgent` end-to-end. |
+| **M2** ✅ | Multi-provider: Anthropic, Ollama, OpenAI/Anthropic-compatible adapters, `SentirumChatClientBase`, Z.AI convenience + `02-MultiProvider`. |
 | **M2** | Custom providers (`SentirumChatClientBase`, OpenAI-compatible, Anthropic, Ollama). |
 | **M3** | Tool registry + tree sessions + MCP. |
 | **M4** | Memory + context providers + RAG. |

@@ -21,7 +21,8 @@
     <PackageVersion Include="Microsoft.Extensions.AI.Abstractions" Version="10.5.1" />
     <PackageVersion Include="Microsoft.Extensions.AI.OpenAI" Version="10.5.1" />
     <PackageVersion Include="OpenAI" Version="2.10.0" />
-    <PackageVersion Include="Microsoft.Extensions.AI.Ollama" Version="9.4.0-preview.1.25207.5" />
+    <PackageVersion Include="Anthropic" Version="12.23.0" />
+    <PackageVersion Include="OllamaSharp" Version="5.4.25" />
     <PackageVersion Include="Microsoft.Extensions.VectorData.Abstractions" Version="9.7.0" />
   </ItemGroup>
 
@@ -45,6 +46,11 @@
     <PackageVersion Include="OpenTelemetry.Api" Version="1.10.0" />
     <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.10.0" />
     <PackageVersion Include="System.Diagnostics.DiagnosticSource" Version="10.0.6" />
+  </ItemGroup>
+
+  <ItemGroup Label="Resilience">
+    <PackageVersion Include="Polly" Version="8.5.2" />
+    <PackageVersion Include="Polly.Extensions" Version="8.5.2" />
   </ItemGroup>
 
   <ItemGroup Label="SDK Tooling">
