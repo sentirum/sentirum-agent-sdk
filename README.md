@@ -30,8 +30,11 @@ roadmap. The current published surface is:
 | Package | Purpose |
 | --- | --- |
 | `Sentirum.Agent.Abstractions` | Interfaces, options, and DTOs — the contract everything else builds against. |
+| `Sentirum.Agent.Core` | Default runtime: agent, session, registry, builder, in-memory session store. |
+| `Sentirum.Agent.Hosting` | `IServiceCollection.AddSentirumAgent(...)` registration. |
+| `Sentirum.Agent.Providers.OpenAI` | OpenAI provider wrapped behind `IChatClient`. |
 
-More packages (Core, Hosting, Providers, Sessions, Workflows, CustomerSupport)
+More packages (additional providers, Sessions.Tree, Workflows, CustomerSupport)
 land per the milestone plan below.
 
 ## Target framework
@@ -51,7 +54,7 @@ dotnet test   Sentirum.Agent.slnx -c Release --no-build
 | Milestone | Scope |
 | --- | --- |
 | **M0** ✅ | Solution foundation, CPM, CI, `Abstractions` package, sample. |
-| **M1** | Core runtime + Hosting + OpenAI provider + `01-HelloAgent`. |
+| **M1** ✅ | Core runtime + Hosting + OpenAI provider + `01-HelloAgent` end-to-end. |
 | **M2** | Custom providers (`SentirumChatClientBase`, OpenAI-compatible, Anthropic, Ollama). |
 | **M3** | Tool registry + tree sessions + MCP. |
 | **M4** | Memory + context providers + RAG. |

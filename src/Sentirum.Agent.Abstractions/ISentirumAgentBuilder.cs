@@ -27,14 +27,29 @@ public interface ISentirumAgentBuilder
     IServiceCollection Services { get; }
 
     /// <summary>
-    /// Configures the <see cref="IChatClient"/> used by this agent.
+    /// Configures the inner-most <see cref="IChatClient"/> for this agent.
+    /// </summary>
+    /// <param name="chatClientFactory">
+    /// Factory that resolves the leaf <see cref="IChatClient"/> from the
+    /// service provider. Provider packages (OpenAI, Anthropic, Ollama, etc.)
+    /// register the leaf client through this hook.
+    /// </param>
+    /// <remarks>
+    /// Only one inner chat client may be set per agent. The most recently
+    /// supplied factory wins.
+    /// </remarks>
+    ISentirumAgentBuilder UseChatClient(Func<IServiceProvider, IChatClient> chatClientFactory);
+
+    /// <summary>
+    /// Adds a delegating layer to the chat-client pipeline (e.g. function
+    /// invocation, telemetry, retries, caching, custom middleware).
     /// </summary>
     /// <param name="configure">
-    /// Callback that receives a <see cref="ChatClientBuilder"/> for layering
-    /// behaviors (function invocation, OpenTelemetry, caching, rate limiting,
-    /// custom delegating clients, etc.).
+    /// Callback that receives the in-flight <see cref="ChatClientBuilder"/>.
+    /// Layers are applied in the order they are registered, so the first
+    /// configured layer is the outermost client.
     /// </param>
-    ISentirumAgentBuilder UseChatClient(Action<ChatClientBuilder> configure);
+    ISentirumAgentBuilder ConfigureChatClient(Action<ChatClientBuilder> configure);
 
     /// <summary>
     /// Adds a configuration delegate that runs against the resolved agent

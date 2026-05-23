@@ -4,8 +4,12 @@
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/Sentirum.Agent.Abstractions/Sentirum.Agent.Abstractions.csproj" />
+    <Project Path="src/Sentirum.Agent.Core/Sentirum.Agent.Core.csproj" />
+    <Project Path="src/Sentirum.Agent.Hosting/Sentirum.Agent.Hosting.csproj" />
+    <Project Path="src/Sentirum.Agent.Providers.OpenAI/Sentirum.Agent.Providers.OpenAI.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Sentirum.Agent.Abstractions.Tests/Sentirum.Agent.Abstractions.Tests.csproj" />
+    <Project Path="tests/Sentirum.Agent.Core.Tests/Sentirum.Agent.Core.Tests.csproj" />
   </Folder>
 </Solution>
