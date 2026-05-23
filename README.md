@@ -1,12 +1,14 @@
 # Sentirum Agent SDK
 
+[![CI](https://github.com/sentirum/sentirum-agent-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/sentirum/sentirum-agent-sdk/actions)
+[![NuGet](https://img.shields.io/nuget/vpre/Sentirum.Agent.Core.svg)](https://www.nuget.org/packages/Sentirum.Agent.Core/)
+
 An opinionated, production-oriented **.NET SDK for building AI agents**, built
 on top of [Microsoft Agent Framework][maf] and [`Microsoft.Extensions.AI`][meai].
 
-> **Status:** early. M0–M3 + the M3.5 hardening sprint are in.
-> Current package version: `0.1.0-preview`. Until v1.0, every minor preview
-> release may break. See [`docs/adr/`](docs/adr/) for the durable design
-> decisions that now back the public surface.
+> **Status:** M0–M8 complete. Current package version: `0.1.0-preview`.
+> Until v1.0, every minor preview release may break.
+> See [`docs/adr/`](docs/adr/) for durable design decisions.
 
 ## Why Sentirum?
 
@@ -18,16 +20,17 @@ opinionated runtime on top:
 - �� **Tree-based sessions** — branch and fork conversations natively.
 - �� **First-class custom providers** — point at any HTTP, gRPC, or proprietary
   LLM endpoint via `IChatClient`.
-- ��️ **Customer-support vertical** — opinionated handoff, escalation, PII
-  redaction, knowledge-base retrieval out of the box.
+- 🏗️ **Workflows** — Sequential / Concurrent / Handoff over MAF workflows.
+- 🚦 **Human-in-the-Loop** — typed approval gates with dispatcher + channel abstractions.
+- 🏢 **Customer-support vertical** — end-to-end demo API: classify → parallel specialists → HITL gate.
 - �� **OpenTelemetry, cost and token tracking** wired by default.
 - �� **Recording / replay** test SDK so you can capture real conversations and
   use them as fixtures.
 
 ## Packages
 
-See the [planning document](docs/planning.md) for the full package matrix and
-roadmap. The current published surface is:
+19 packages on NuGet. See the [planning document](docs/planning.md) for the
+full package matrix and roadmap.
 
 | Package | Purpose |
 | --- | --- |
@@ -48,8 +51,8 @@ roadmap. The current published surface is:
 | `Sentirum.Agent.Memory.Redis` | Distributed memory store backed by Redis. |
 | `Sentirum.Agent.Memory.EntityFrameworkCore` | SQL memory store backed by EF Core. |
 | `Sentirum.Agent.Context` | `WithUserMemory()`, `WithAmbientInstructions()`, `WithKnowledgeBase()` context providers over the MAF `MessageAIContextProvider` pipeline. |
-
-More packages (Workflows, CustomerSupport) land per the milestone plan below.
+| `Sentirum.Agent.Workflows` | Sequential / Concurrent / Handoff / UseWorkflow wrappers over MAF `Microsoft.Agents.AI.Workflows` 1.6.2. |
+| `Sentirum.Agent.Workflows.HumanInTheLoop` | Typed `ApprovalGate`, `ApprovalDispatcher`, `IApprovalChannel` / `InMemoryApprovalChannel`. |
 
 ## Target framework
 
@@ -63,26 +66,48 @@ dotnet build  Sentirum.Agent.slnx -c Release
 dotnet test   Sentirum.Agent.slnx -c Release --no-build
 ```
 
-## Roadmap (high level)
+## M8 Customer Support Vertical (sample)
 
-| Milestone | Scope |
-| --- | --- |
-| **M0** ✅ | Solution foundation, CPM, CI, `Abstractions` package, sample. |
-| **M1** ✅ | Core runtime + Hosting + OpenAI provider + `01-HelloAgent` end-to-end. |
-| **M2** ✅ | Multi-provider: Anthropic, Ollama, OpenAI/Anthropic-compatible adapters, `SentirumChatClientBase`, Z.AI convenience + `02-MultiProvider`. |
-| **M3** ✅ | Tools (`[Tool]` + `WithTools<T>()`) and tree sessions (fork / merge / walk / visualize) + `03-ToolCalling` + `04-SessionForking`. |
-| **M3.5** ✅ | Hardening pass after the `gpt-5.5` code review: thread-safe forks, direction-safe merges with deep-cloned messages, agent disposal, tool-signature validation, options validation, streaming-cancellation observability, ADR-0001–0006. |
-| **M4** ✅ | Memory (`InMemory` / `Redis` / `EntityFrameworkCore`) + context providers (`WithUserMemory`, `WithAmbientInstructions`, `WithKnowledgeBase`) + samples `05-Memory` and `06-Rag` verified live against Z.AI / GLM-4.6. |
-| **M4.5** ✅ | Hardening pass after the `glm-5` code review: strict `MemoryPartition.Validate()`, EF Core upsert via `ExecuteUpdateAsync` + side-effect-free `GetAsync`, Redis envelope via `JsonSerializer` (surrogate-safe), multi-tenant `WithUserMemory(Func<...>)` + `WithSessionMemory(Func<...>)`, ADR-0007–0010, +15 tests. |
-| **M5** ✅ | Workflows + Human-in-the-Loop: `Sentirum.Agent.Workflows` (Sequential / Concurrent / Handoff / UseWorkflow over MAF `Microsoft.Agents.AI.Workflows` 1.6.2) + `Sentirum.Agent.Workflows.HumanInTheLoop` (typed `ApprovalGate`, `ApprovalDispatcher`, `IApprovalChannel` / `InMemoryApprovalChannel`). Samples `07-Workflow` (concurrent + sequential triage live against Z.AI / GLM-4.6) and `08-HITL` (refund approval pipeline with policy-bot reviewer) plus ADR-0011 and +16 tests. |
-| **M2** | Custom providers (`SentirumChatClientBase`, OpenAI-compatible, Anthropic, Ollama). |
-| **M3** | Tool registry + tree sessions + MCP. |
-| **M4** | Memory + context providers + RAG. |
-| **M5** | Workflows wrapper + handoff + HITL. |
-| **M6** | Observability + security (PII redaction, content filters). |
-| **M7** | ASP.NET Core hosting (SSE, A2A). |
-| **M8** | `Sentirum.Agent.CustomerSupport` opinionated vertical + full sample. |
-| **M9** | Docs, integration tests, NuGet publish — `v1.0.0`. |
+The [`09-CustomerSupport`](samples/09-CustomerSupport) sample is a
+production-ish ASP.NET Core Minimal API that wires every SDK primitive
+into a single support-triage pipeline:
+
+```bash
+# Run
+ZAI_API_KEY=... dotnet run --project samples/09-CustomerSupport
+
+# Create a ticket (classifier → parallel specialists → HITL gate if >$100)
+curl -X POST http://localhost:5000/support/ticket \
+  -H 'Content-Type: application/json' \
+  -d '{"customerId":"u-123","subject":"Damaged item","description":"My package arrived crushed. I paid $149 for it."}'
+# → {"id":"a1b2c3d4e5f6","status":"PendingApproval","category":"damaged-product",...}
+
+# Approve (or reject) a pending ticket
+curl -X POST http://localhost:5000/support/approve/a1b2c3d4e5f6 \
+  -H 'Content-Type: application/json' \
+  -d '{"approved":true,"reviewer":"ops@sentirum","comment":"lgtm"}'
+```
+
+Features demonstrated: multi-agent DI registry, `ConcurrentJoin` workflow,
+`InMemoryApprovalChannel` HITL gate, `ISentirumMemoryStore` audit trail,
+typed JSON DTOs.
+
+## Roadmap
+
+| Milestone | Scope | Status |
+| --- | --- | --- |
+| **M0** | Solution foundation, CPM, CI, `Abstractions` package | ✅ |
+| **M1** | Core runtime + Hosting + OpenAI provider + `01-HelloAgent` | ✅ |
+| **M2** | Multi-provider: Anthropic, Ollama, compatible adapters, Z.AI + `02-MultiProvider` | ✅ |
+| **M3** | Tools (`[Tool]` + `WithTools<T>()`) and tree sessions + `03-ToolCalling` + `04-SessionForking` | ✅ |
+| **M3.5** | Hardening: thread-safe forks, agent disposal, tool validation, ADR-0001–0006 | ✅ |
+| **M4** | Memory (`InMemory` / `Redis` / `EF Core`) + context providers + `05-Memory` + `06-Rag` | ✅ |
+| **M4.5** | Hardening: `MemoryPartition` validation, Redis envelopes, ADR-0007–0010 | ✅ |
+| **M5** | Workflows + HITL + `07-Workflow` + `08-HITL` + ADR-0011 | ✅ |
+| **M6** | Code-review hardening: unbounded-collection eviction, AsyncLocal fixes | ✅ |
+| **M7** | ASP.NET Core hosting (SSE, A2A) | 📋 Planned |
+| **M8** | Customer Support Vertical + `09-CustomerSupport` | ✅ |
+| **M9** | Docs, integration tests, NuGet stable — `v1.0.0` | 📋 Planned |
 
 ## License
 
