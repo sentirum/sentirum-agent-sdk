@@ -6,29 +6,44 @@ namespace Sentirum.Agent.Providers.MiniMax.Tests;
 public sealed class MiniMaxBuilderTests
 {
     [Fact]
-    public void UseMiniMax_OpenAI_RegistersAgent()
+    public void UseMiniMax_RegistersAgent()
     {
         var services = new ServiceCollection();
-        services.AddSentirumAgent("minimax-openai", b => b
-            .UseMiniMax("MiniMax-M2.7", apiKey: "test-key", protocol: MiniMaxProtocol.OpenAI));
+        services.AddSentirumAgent("mm", b => b
+            .UseMiniMax("MiniMax-M2.7", apiKey: "test-key"));
 
         var sp = services.BuildServiceProvider();
         var registry = sp.GetRequiredService<ISentirumAgentRegistry>();
 
-        Assert.NotNull(registry.Find("minimax-openai"));
+        Assert.NotNull(registry.Find("mm"));
     }
 
     [Fact]
-    public void UseMiniMax_Anthropic_RegistersAgent()
+    public void UseMiniMax_WithCustomBaseUrl_RegistersAgent()
     {
         var services = new ServiceCollection();
-        services.AddSentirumAgent("minimax-anthropic", b => b
-            .UseMiniMax("MiniMax-M2.7", apiKey: "test-key", protocol: MiniMaxProtocol.Anthropic));
+        services.AddSentirumAgent("mm-custom", b => b
+            .UseMiniMax("MiniMax-M2.7", apiKey: "test-key",
+                baseUrl: "https://custom.api.io/v1/"));
 
         var sp = services.BuildServiceProvider();
         var registry = sp.GetRequiredService<ISentirumAgentRegistry>();
 
-        Assert.NotNull(registry.Find("minimax-anthropic"));
+        Assert.NotNull(registry.Find("mm-custom"));
+    }
+
+    [Fact]
+    public void UseMiniMax_WithoutReasoningSplit_RegistersAgent()
+    {
+        var services = new ServiceCollection();
+        services.AddSentirumAgent("mm-nors", b => b
+            .UseMiniMax("MiniMax-M2.7", apiKey: "test-key",
+                reasoningSplit: false));
+
+        var sp = services.BuildServiceProvider();
+        var registry = sp.GetRequiredService<ISentirumAgentRegistry>();
+
+        Assert.NotNull(registry.Find("mm-nors"));
     }
 
     [Theory]
@@ -46,15 +61,15 @@ public sealed class MiniMaxBuilderTests
     }
 
     [Fact]
-    public void UseMiniMax_DefaultProtocol_IsOpenAI()
+    public void UseMiniMax_DefaultModel_Works()
     {
         var services = new ServiceCollection();
-        services.AddSentirumAgent("minimax-default", b => b
-            .UseMiniMax("MiniMax-M2.7", apiKey: "test-key"));
+        services.AddSentirumAgent("mm-default", b => b
+            .UseMiniMax("MiniMax-M2.7-highspeed", apiKey: "test-key"));
 
         var sp = services.BuildServiceProvider();
         var registry = sp.GetRequiredService<ISentirumAgentRegistry>();
 
-        Assert.NotNull(registry.Find("minimax-default"));
+        Assert.NotNull(registry.Find("mm-default"));
     }
 }

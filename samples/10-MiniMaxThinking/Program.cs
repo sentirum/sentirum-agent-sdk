@@ -1,7 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.AI;
 using Sentirum.Agent;
-using Sentirum.Agent.Providers.MiniMax;
 
 var key = Environment.GetEnvironmentVariable("MINIMAX_API_KEY");
 if (string.IsNullOrWhiteSpace(key))
@@ -12,8 +11,9 @@ if (string.IsNullOrWhiteSpace(key))
 
 var services = new ServiceCollection();
 
+// reasoning_split=true is injected automatically by separateThinking: true (default)
 services.AddSentirumAgent("mm", b => b
-    .UseMiniMax("MiniMax-M2.7", key, MiniMaxProtocol.OpenAI, separateThinking: true)
+    .UseMiniMax("MiniMax-M2.7", key, reasoningSplit: true)
     .WithInstructions("You are a helpful assistant. Always think step by step."));
 
 var sp = services.BuildServiceProvider();
@@ -21,7 +21,7 @@ var agent = sp.GetRequiredService<ISentirumAgentRegistry>().Find("mm")!;
 var sessionStore = sp.GetRequiredService<ISentirumSessionStore>();
 var session = await sessionStore.CreateAsync(agent.Id);
 
-Console.WriteLine("=== Non-Streaming Test ===\n");
+Console.WriteLine("=== Non-Streaming Test (reasoning_split=true) ===\n");
 
 var response = await agent.RunAsync(
     session,
@@ -35,22 +35,14 @@ foreach (var msg in response.Messages)
         continue;
     }
 
-    var thinking = msg.AdditionalProperties?
-        .GetValueOrDefault(MiniMaxThinkingMiddleware.ThinkingPropertyName) as string;
     var answer = msg.Text;
-
-    if (thinking is not null)
-    {
-        Console.WriteLine($"🧠 THINKING:\n{thinking}\n");
-    }
-
-    Console.WriteLine($"💬 ANSWER:\n{answer}\n");
+    Console.WriteLine($"ANSER:\n{answer}\n");
+    Console.WriteLine($"(Thinking already separated by API — content is clean!)");
 }
 
-Console.WriteLine("=== Streaming Test ===\n");
+Console.WriteLine("\n=== Streaming Test ===\n");
 
 var session2 = await sessionStore.CreateAsync(agent.Id);
-
 await foreach (var update in agent.RunStreamingAsync(
     session2,
     new ChatMessage(ChatRole.User, "Is 97 a prime number?"),
@@ -60,30 +52,8 @@ await foreach (var update in agent.RunStreamingAsync(
     {
         continue;
     }
-
-    var isThinking = update.AdditionalProperties?
-        .ContainsKey(MiniMaxThinkingMiddleware.IsThinkingPropertyName) == true;
-
-    var hasThinking = update.AdditionalProperties?
-        .ContainsKey(MiniMaxThinkingMiddleware.ThinkingPropertyName) == true;
-
-    if (hasThinking)
-    {
-        var t = update.AdditionalProperties?[MiniMaxThinkingMiddleware.ThinkingPropertyName] as string;
-        Console.WriteLine($"\n🧠 THINKING (complete):\n{t}\n");
-        Console.Write("💬 ANSWER: ");
-    }
-    else if (isThinking)
-    {
-        Console.ForegroundColor = ConsoleColor.DarkGray;
-        Console.Write(update.Text);
-        Console.ResetColor();
-    }
-    else
-    {
-        Console.Write(update.Text);
-    }
+    Console.Write(update.Text);
 }
 
-Console.WriteLine("\n\n✅ Done!");
+Console.WriteLine("\n\nDone!");
 return 0;
