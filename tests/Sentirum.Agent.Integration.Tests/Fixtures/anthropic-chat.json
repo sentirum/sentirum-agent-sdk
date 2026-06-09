@@ -1,0 +1,14 @@
+[
+  {
+    "requestMessages": [
+      { "role": "user", "text": "Explain quantum computing in one sentence." }
+    ],
+    "requestOptions": { "modelId": "claude-3-5-sonnet-20241022", "maxOutputTokens": 100 },
+    "responseMessages": [
+      { "role": "assistant", "text": "Quantum computing leverages quantum mechanical phenomena like superposition and entanglement to perform computations exponentially faster than classical computers for specific problems." }
+    ],
+    "usage": { "inputTokenCount": 15, "outputTokenCount": 32, "totalTokenCount": 47 },
+    "recordedAt": "2026-06-08T12:00:00Z",
+    "label": "anthropic-quantum"
+  }
+]

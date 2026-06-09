@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Sentirum.Agent.CustomerSupport</RootNamespace>
+    <AssemblyName>Sentirum.Agent.CustomerSupport</AssemblyName>
+    <Description>Customer support vertical for Sentirum.Agent: triage workflow, ticket store, and approval gates.</Description>
+    <PackageId>Sentirum.Agent.CustomerSupport</PackageId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Sentirum.Agent.Abstractions\Sentirum.Agent.Abstractions.csproj" />
+    <ProjectReference Include="..\Sentirum.Agent.Core\Sentirum.Agent.Core.csproj" />
+    <ProjectReference Include="..\Sentirum.Agent.Workflows\Sentirum.Agent.Workflows.csproj" />
+    <ProjectReference Include="..\Sentirum.Agent.Workflows.HumanInTheLoop\Sentirum.Agent.Workflows.HumanInTheLoop.csproj" />
+    <ProjectReference Include="..\Sentirum.Agent.Memory.Abstractions\Sentirum.Agent.Memory.Abstractions.csproj" />
+  </ItemGroup>
+
+</Project>

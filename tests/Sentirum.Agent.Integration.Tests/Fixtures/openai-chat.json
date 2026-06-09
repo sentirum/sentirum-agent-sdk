@@ -1,0 +1,15 @@
+[
+  {
+    "requestMessages": [
+      { "role": "system", "text": "You are a helpful assistant." },
+      { "role": "user", "text": "What is the capital of France?" }
+    ],
+    "requestOptions": { "modelId": "gpt-4o-mini", "temperature": 0.7 },
+    "responseMessages": [
+      { "role": "assistant", "text": "The capital of France is Paris." }
+    ],
+    "usage": { "inputTokenCount": 25, "outputTokenCount": 8, "totalTokenCount": 33 },
+    "recordedAt": "2026-06-08T12:00:00Z",
+    "label": "openai-capital"
+  }
+]

@@ -29,7 +29,7 @@ opinionated runtime on top:
 
 ## Packages
 
-22 packages on NuGet. See the [planning document](docs/planning.md) for the
+29 packages on NuGet. See the [planning document](docs/planning.md) for the
 full package matrix and roadmap.
 
 | Package | Purpose |
@@ -43,8 +43,8 @@ full package matrix and roadmap.
 | `Sentirum.Agent.Providers.AnthropicCompatible` | Any Anthropic-compatible endpoint (Bedrock proxy, Z.AI Anthropic route). |
 | `Sentirum.Agent.Providers.Ollama` | Local LLM via OllamaSharp. |
 | `Sentirum.Agent.Providers.Custom` | `SentirumChatClientBase` — base class with retry / timeout / structured logging for fully custom providers. |
-| `Sentirum.Agent.Providers.ZAI` | Z.AI (GLM) convenience: `UseZAI(model, key, protocol)` + thinking mode helpers. |
 | `Sentirum.Agent.Providers.MiniMax` | MiniMax dual-protocol: OpenAI-compatible (`api.minimax.io/v1`) and Anthropic-compatible (`api.minimax.io/anthropic`). Models: MiniMax-M2.7. |
+| `Sentirum.Agent.Providers.AzureOpenAI` | Azure OpenAI Service with API-key and Azure AD (`DefaultAzureCredential`) auth. |
 | `Sentirum.Agent.Tools.Core` | `[Tool]` attribute + reflection-based discovery + `WithTools<T>()`. |
 | `Sentirum.Agent.Sessions.Tree` | Tree-based sessions: fork / merge / walk / visualize. |
 | `Sentirum.Agent.Memory.Abstractions` | `ISentirumMemoryStore` + `MemoryScope` (Global / Agent / User / Session). |
@@ -56,10 +56,15 @@ full package matrix and roadmap.
 | `Sentirum.Agent.Embeddings` | `InMemoryVectorStore<TKey>` (cosine similarity), `SentirumKnowledgeBase<TKey>` (RAG bridge), DI registration helpers. |
 | `Sentirum.Agent.Workflows` | Sequential / Concurrent / Handoff / UseWorkflow wrappers over MAF `Microsoft.Agents.AI.Workflows` 1.6.2. |
 | `Sentirum.Agent.Workflows.HumanInTheLoop` | Typed `ApprovalGate`, `ApprovalDispatcher`, `IApprovalChannel` / `InMemoryApprovalChannel`. |
+| `Sentirum.Agent.Testing` | `RecordingChatClient`, `ReplayChatClient`, `FakeChatClient`, and `SentirumAgentTestHost` for unit and integration tests. |
+| `Sentirum.Agent.Observability` | OpenTelemetry spans, per-request cost tracking, and token budget enforcement. |
+| `Sentirum.Agent.AspNetCore` | `MapSentirumAgent()`, SSE streaming, and A2A protocol endpoints. |
+| `Sentirum.Agent.CustomerSupport` | Support ticket domain model, triage workflow factory, amount-based approval gate. |
+| `Sentirum.Agent.Tools.Mcp` | Model Context Protocol integration: consume MCP server tools as `AIFunction` instances. |
 
 ## Target framework
 
-`net10.0` only at M0. `net8.0` LTS support is planned once the surface stabilizes.
+`net8.0` and `net10.0`. `net8.0` LTS support added in M6.
 
 ## Build locally
 
@@ -107,8 +112,8 @@ typed JSON DTOs.
 | **M4** | Memory (`InMemory` / `Redis` / `EF Core`) + context providers + `05-Memory` + `06-Rag` | ✅ |
 | **M4.5** | Hardening: `MemoryPartition` validation, Redis envelopes, ADR-0007–0010 | ✅ |
 | **M5** | Workflows + HITL + `07-Workflow` + `08-HITL` + ADR-0011 | ✅ |
-| **M6** | Code-review hardening: unbounded-collection eviction, AsyncLocal fixes | ✅ |
-| **M7** | ASP.NET Core hosting (SSE, A2A) | 📋 Planned |
+| **M6** | `net8.0` multi-targeting, `Testing` package, Observability, Security, AsyncLocal fixes | ✅ |
+| **M7** | ASP.NET Core hosting (SSE, A2A) via `Sentirum.Agent.AspNetCore` | ✅ |
 | **M8** | Customer Support Vertical + `09-CustomerSupport` | ✅ |
 | **M9** | Docs, integration tests, NuGet stable — `v1.0.0` | 📋 Planned |
 

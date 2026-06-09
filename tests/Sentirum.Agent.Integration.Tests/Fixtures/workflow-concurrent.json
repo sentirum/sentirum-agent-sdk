@@ -1,0 +1,26 @@
+[
+  {
+    "requestMessages": [
+      { "role": "user", "text": "Analyze sentiment" }
+    ],
+    "requestOptions": null,
+    "responseMessages": [
+      { "role": "assistant", "text": "Positive sentiment detected." }
+    ],
+    "usage": { "inputTokenCount": 4, "outputTokenCount": 5, "totalTokenCount": 9 },
+    "recordedAt": "2026-06-08T12:00:00Z",
+    "label": "agent-a"
+  },
+  {
+    "requestMessages": [
+      { "role": "user", "text": "Extract keywords" }
+    ],
+    "requestOptions": null,
+    "responseMessages": [
+      { "role": "assistant", "text": "Keywords: sentiment, analysis." }
+    ],
+    "usage": { "inputTokenCount": 4, "outputTokenCount": 5, "totalTokenCount": 9 },
+    "recordedAt": "2026-06-08T12:00:00Z",
+    "label": "agent-b"
+  }
+]

@@ -1,0 +1,15 @@
+[
+  {
+    "requestMessages": [
+      { "role": "system", "text": "You are a concise assistant." },
+      { "role": "user", "text": "Name three primary colors." }
+    ],
+    "requestOptions": { "modelId": "gpt-4o", "temperature": 0.2 },
+    "responseMessages": [
+      { "role": "assistant", "text": "Red, blue, and yellow." }
+    ],
+    "usage": { "inputTokenCount": 18, "outputTokenCount": 7, "totalTokenCount": 25 },
+    "recordedAt": "2026-06-08T12:00:00Z",
+    "label": "azure-colors"
+  }
+]

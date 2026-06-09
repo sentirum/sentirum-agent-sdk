@@ -1,0 +1,14 @@
+[
+  {
+    "requestMessages": [
+      { "role": "user", "text": "What is 2+2?" }
+    ],
+    "requestOptions": { "modelId": "glm-4.6", "temperature": 0.3 },
+    "responseMessages": [
+      { "role": "assistant", "text": "2 + 2 = 4." }
+    ],
+    "usage": { "inputTokenCount": 8, "outputTokenCount": 6, "totalTokenCount": 14 },
+    "recordedAt": "2026-06-08T12:00:00Z",
+    "label": "zai-math"
+  }
+]

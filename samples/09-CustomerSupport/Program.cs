@@ -17,12 +17,10 @@
 // Run with:
 //   ZAI_API_KEY=... dotnet run --project samples/09-CustomerSupport
 
-using System.Collections.Concurrent;
-using System.Globalization;
 using System.Text.Json.Serialization;
-using Microsoft.Agents.AI.Workflows;
 using Microsoft.Extensions.AI;
 using Sentirum.Agent;
+using Sentirum.Agent.CustomerSupport;
 using Sentirum.Agent.Memory;
 using Sentirum.Agent.Memory.InMemory;
 using Sentirum.Agent.Workflows;
@@ -84,22 +82,19 @@ builder.Services.AddSingleton<ISentirumWorkflow>(sp =>
     ISentirumAgent A(string id) => registry.Find(id)
         ?? throw new InvalidOperationException($"Agent '{id}' not found.");
 
-    return SentirumWorkflowBuilder.Create("support-triage")
-        .WithName("Customer Support Triage")
-        .ConcurrentJoin(new[]
-        {
-            A("refund-specialist"),
-            A("replacement-specialist"),
-            A("discount-specialist"),
-        })
-        .Build();
+    return SupportWorkflowBuilder.CreateTriageWorkflow("support-triage",
+    [
+        A("refund-specialist"),
+        A("replacement-specialist"),
+        A("discount-specialist"),
+    ]);
 });
 
 // ── HITL channel ─────────────────────────────────────────────────────
 builder.Services.AddSingleton<IApprovalChannel>(new InMemoryApprovalChannel());
 
-// ── Ticket store (in-memory) ─────────────────────────────────────────
-builder.Services.AddSingleton(new TicketStore());
+// ── Customer support services (ticket store) ─────────────────────────
+builder.Services.AddCustomerSupport();
 
 var app = builder.Build();
 
@@ -114,7 +109,7 @@ app.MapPost("/support/ticket", async (
     ISentirumAgentRegistry agents,
     ISentirumWorkflow workflow,
     ISentirumMemoryStore memory,
-    TicketStore tickets,
+    ISupportTicketStore tickets,
     IApprovalChannel channel,
     CancellationToken ct) =>
 {
@@ -137,14 +132,14 @@ app.MapPost("/support/ticket", async (
         sessionId: ticketId,
         cancellationToken: ct);
 
-    var recommendations = ExtractRecommendations(wfResult.Outputs);
+    var recommendations = SupportWorkflowBuilder.ExtractRecommendations(wfResult.Outputs);
 
     // ── Step 3: determine if HITL needed ─────────────────────────────
-    var amounts = ExtractAmounts(recommendations);
+    var amounts = SupportWorkflowBuilder.ExtractAmounts(recommendations);
     var maxAmount = amounts.DefaultIfEmpty(0m).Max();
     var needsApproval = maxAmount > 100m;
 
-    var ticket = new Ticket
+    var ticket = new SupportTicket
     {
         Id = ticketId,
         CustomerId = req.CustomerId,
@@ -153,7 +148,7 @@ app.MapPost("/support/ticket", async (
         Category = category,
         Recommendations = recommendations,
         MaxAmount = maxAmount,
-        Status = needsApproval ? TicketStatus.PendingApproval : TicketStatus.Resolved,
+        Status = needsApproval ? SupportTicketStatus.PendingApproval : SupportTicketStatus.Resolved,
         CreatedAt = createdAt,
     };
 
@@ -168,19 +163,8 @@ app.MapPost("/support/ticket", async (
     // ── Step 5: if HITL needed, publish to channel ───────────────────
     if (needsApproval)
     {
-        await channel.PublishAsync(new ApprovalRequest(
-            "support-approval",
-            $"Ticket {ticketId} requires approval",
-            $"Max recommendation: ${maxAmount}\n{string.Join("\n", recommendations)}",
-            new Dictionary<string, string>
-            {
-                ["ticketId"] = ticketId,
-                ["maxAmount"] = maxAmount.ToString(CultureInfo.InvariantCulture),
-                ["category"] = category,
-            },
-            CorrelationId: Guid.NewGuid().ToString("N"),
-            RequestId: string.Empty),
-            ct);
+        var approvalRequest = SupportApprovalGate.ComposeRequest(threshold: 100m)(wfResult.Outputs);
+        await channel.PublishAsync(approvalRequest, ct);
     }
 
     return Results.Created($"/support/ticket/{ticketId}", new TicketResponse(
@@ -193,7 +177,7 @@ app.MapPost("/support/ticket", async (
 });
 
 // GET /support/ticket/{id}
-app.MapGet("/support/ticket/{id}", (string id, TicketStore tickets) =>
+app.MapGet("/support/ticket/{id}", (string id, ISupportTicketStore tickets) =>
 {
     if (!tickets.TryGet(id, out var ticket))
     {
@@ -201,7 +185,7 @@ app.MapGet("/support/ticket/{id}", (string id, TicketStore tickets) =>
     }
 
     return Results.Ok(new TicketResponse(
-        ticket.Id,
+        ticket!.Id,
         ticket.Status.ToString(),
         ticket.Category,
         ticket.Recommendations,
@@ -214,7 +198,7 @@ app.MapGet("/support/ticket/{id}", (string id, TicketStore tickets) =>
 app.MapPost("/support/approve/{id}", async (
     string id,
     ApproveRequest req,
-    TicketStore tickets,
+    ISupportTicketStore tickets,
     IApprovalChannel channel,
     CancellationToken ct) =>
 {
@@ -223,7 +207,7 @@ app.MapPost("/support/approve/{id}", async (
         return Results.NotFound();
     }
 
-    if (ticket.Status != TicketStatus.PendingApproval)
+    if (ticket!.Status != SupportTicketStatus.PendingApproval)
     {
         return Results.BadRequest(new { error = "Ticket is not pending approval." });
     }
@@ -243,7 +227,7 @@ app.MapPost("/support/approve/{id}", async (
                 requestId: string.Empty,
                 context: new Dictionary<string, string> { ["ticketId"] = id });
 
-            ticket.Status = TicketStatus.Approved;
+            ticket.Status = SupportTicketStatus.Approved;
         }
         else
         {
@@ -254,7 +238,7 @@ app.MapPost("/support/approve/{id}", async (
                 requestId: string.Empty,
                 context: new Dictionary<string, string> { ["ticketId"] = id });
 
-            ticket.Status = TicketStatus.Rejected;
+            ticket.Status = SupportTicketStatus.Rejected;
         }
     }
 
@@ -270,7 +254,7 @@ app.MapPost("/support/approve/{id}", async (
 });
 
 // GET /support/tickets (list all)
-app.MapGet("/support/tickets", (TicketStore tickets) =>
+app.MapGet("/support/tickets", (ISupportTicketStore tickets) =>
 {
     var all = tickets.GetAll()
         .Select(t => new TicketResponse(
@@ -286,43 +270,6 @@ app.MapGet("/support/tickets", (TicketStore tickets) =>
 });
 
 app.Run();
-
-// ═════════════════════════════════════════════════════════════════════
-// Helpers
-// ═════════════════════════════════════════════════════════════════════
-
-static List<string> ExtractRecommendations(IReadOnlyList<object?> outputs)
-{
-    var result = new List<string>();
-    foreach (var output in outputs)
-    {
-        if (output is IEnumerable<ChatMessage> msgs)
-        {
-            result.AddRange(msgs
-                .Select(m => m.Text)
-                .Where(t => !string.IsNullOrWhiteSpace(t)));
-        }
-        else if (output is ChatMessage msg && !string.IsNullOrWhiteSpace(msg.Text))
-        {
-            result.Add(msg.Text);
-        }
-    }
-    return result;
-}
-
-static IEnumerable<decimal> ExtractAmounts(List<string> recommendations)
-{
-    foreach (var rec in recommendations)
-    {
-        foreach (var token in rec.Split(new[] { ' ', '\t', '\n', '$', ',', '%' }, StringSplitOptions.RemoveEmptyEntries))
-        {
-            if (decimal.TryParse(token, NumberStyles.Number, CultureInfo.InvariantCulture, out var v))
-            {
-                yield return v;
-            }
-        }
-    }
-}
 
 // ═════════════════════════════════════════════════════════════════════
 // DTOs
@@ -345,39 +292,3 @@ public sealed record TicketResponse(
     List<string> Recommendations,
     decimal MaxAmount,
     DateTimeOffset CreatedAt);
-
-// ═════════════════════════════════════════════════════════════════════
-// Domain
-// ═════════════════════════════════════════════════════════════════════
-
-public enum TicketStatus
-{
-    PendingApproval,
-    Resolved,
-    Approved,
-    Rejected,
-}
-
-public sealed class Ticket
-{
-    public required string Id { get; init; }
-    public required string CustomerId { get; init; }
-    public required string Subject { get; init; }
-    public required string Description { get; init; }
-    public required string Category { get; set; }
-    public required List<string> Recommendations { get; init; }
-    public required decimal MaxAmount { get; init; }
-    public required TicketStatus Status { get; set; }
-    public required DateTimeOffset CreatedAt { get; init; }
-}
-
-public sealed class TicketStore
-{
-    private readonly ConcurrentDictionary<string, Ticket> _tickets = new(StringComparer.Ordinal);
-
-    public void Upsert(Ticket ticket) => _tickets[ticket.Id] = ticket;
-    public bool TryGet(string id, out Ticket ticket) => _tickets.TryGetValue(id, out ticket!);
-    public IEnumerable<Ticket> GetAll() => _tickets.Values;
-}
-
-// (end of file)

@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Sentirum.Agent</RootNamespace>
+    <AssemblyName>Sentirum.Agent.Providers.AzureOpenAI</AssemblyName>
+    <Description>Azure OpenAI provider for Sentirum.Agent. Supports API-key and Azure AD (DefaultAzureCredential) authentication.</Description>
+    <PackageId>Sentirum.Agent.Providers.AzureOpenAI</PackageId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Sentirum.Agent.Abstractions\Sentirum.Agent.Abstractions.csproj" />
+    <PackageReference Include="Microsoft.Extensions.AI" />
+    <PackageReference Include="Microsoft.Extensions.AI.OpenAI" />
+    <PackageReference Include="Azure.AI.OpenAI" />
+    <PackageReference Include="Azure.Identity" />
+  </ItemGroup>
+
+</Project>

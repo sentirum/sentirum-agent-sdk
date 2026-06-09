@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Sentirum.Agent.Security</RootNamespace>
+    <AssemblyName>Sentirum.Agent.Security</AssemblyName>
+    <Description>Security middleware for Sentirum agents: PII redaction and content safety.</Description>
+    <PackageId>Sentirum.Agent.Security</PackageId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Sentirum.Agent.Abstractions\Sentirum.Agent.Abstractions.csproj" />
+    <ProjectReference Include="..\Sentirum.Agent.Core\Sentirum.Agent.Core.csproj" />
+    <PackageReference Include="Microsoft.Extensions.AI" />
+  </ItemGroup>
+
+</Project>

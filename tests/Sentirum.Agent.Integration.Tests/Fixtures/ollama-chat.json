@@ -1,0 +1,14 @@
+[
+  {
+    "requestMessages": [
+      { "role": "user", "text": "Say hello in Spanish." }
+    ],
+    "requestOptions": { "modelId": "llama3.2", "temperature": 0.5 },
+    "responseMessages": [
+      { "role": "assistant", "text": "¡Hola!" }
+    ],
+    "usage": { "inputTokenCount": 6, "outputTokenCount": 3, "totalTokenCount": 9 },
+    "recordedAt": "2026-06-08T12:00:00Z",
+    "label": "ollama-spanish"
+  }
+]
