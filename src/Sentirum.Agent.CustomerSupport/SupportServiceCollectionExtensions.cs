@@ -1,6 +1,7 @@
 using System;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Sentirum.Agent.CustomerSupport.Sentiment;
 
 namespace Sentirum.Agent.CustomerSupport;
 
@@ -16,6 +17,10 @@ public static class SupportServiceCollectionExtensions
     {
         ArgumentNullException.ThrowIfNull(services);
         services.TryAddSingleton<ISupportTicketStore, InMemorySupportTicketStore>();
+        // Default sentiment analyzer used by WithSentimentBasedEscalation()
+        // when no custom ISentimentAnalyzer is registered. Registered as
+        // TryAdd so callers can override it.
+        services.TryAddSingleton<ISentimentAnalyzer, KeywordSentimentAnalyzer>();
         return services;
     }
 

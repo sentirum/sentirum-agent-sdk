@@ -3,7 +3,7 @@
   <PropertyGroup>
     <RootNamespace>Sentirum.Agent.CustomerSupport</RootNamespace>
     <AssemblyName>Sentirum.Agent.CustomerSupport</AssemblyName>
-    <Description>Customer support vertical for Sentirum.Agent: triage workflow, ticket store, and approval gates.</Description>
+    <Description>Customer support vertical for Sentirum.Agent: opinionated SupportAgentBuilder (tier 1 / escalation / knowledge base / PII redaction / sentiment-based escalation), triage workflow, ticket store, and approval gates.</Description>
     <PackageId>Sentirum.Agent.CustomerSupport</PackageId>
   </PropertyGroup>
 
@@ -13,6 +13,9 @@
     <ProjectReference Include="..\Sentirum.Agent.Workflows\Sentirum.Agent.Workflows.csproj" />
     <ProjectReference Include="..\Sentirum.Agent.Workflows.HumanInTheLoop\Sentirum.Agent.Workflows.HumanInTheLoop.csproj" />
     <ProjectReference Include="..\Sentirum.Agent.Memory.Abstractions\Sentirum.Agent.Memory.Abstractions.csproj" />
+    <ProjectReference Include="..\Sentirum.Agent.Context\Sentirum.Agent.Context.csproj" />
+    <ProjectReference Include="..\Sentirum.Agent.Security\Sentirum.Agent.Security.csproj" />
+    <ProjectReference Include="..\Sentirum.Agent.Hosting\Sentirum.Agent.Hosting.csproj" />
   </ItemGroup>
 
 </Project>

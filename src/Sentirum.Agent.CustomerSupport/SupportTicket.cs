@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Sentirum.Agent.CustomerSupport.Sentiment;
 
 namespace Sentirum.Agent.CustomerSupport;
 
@@ -42,6 +43,19 @@ public sealed class SupportTicket
     /// The maximum monetary amount mentioned across all recommendations.
     /// </summary>
     public decimal MaxAmount { get; set; }
+
+    /// <summary>
+    /// The customer-facing reply drafted by the Tier-1 responder. Populated
+    /// once the triage + responder pipeline has run.
+    /// </summary>
+    public string? Reply { get; set; }
+
+    /// <summary>
+    /// The latest sentiment score recorded for the customer's message
+    /// (null if not analyzed). Typed so callers can read polarity, label,
+    /// and confidence without re-parsing a string.
+    /// </summary>
+    public SentimentScore? Sentiment { get; set; }
 
     /// <summary>
     /// Current ticket lifecycle state.

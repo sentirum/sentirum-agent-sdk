@@ -54,5 +54,6 @@
     <Project Path="tests/Sentirum.Agent.Testing.Tests/Sentirum.Agent.Testing.Tests.csproj" />
     <Project Path="tests/Sentirum.Agent.Integration.Tests/Sentirum.Agent.Integration.Tests.csproj" />
     <Project Path="tests/Sentirum.Agent.Embeddings.Tests/Sentirum.Agent.Embeddings.Tests.csproj" />
+    <Project Path="tests/Sentirum.Agent.CustomerSupport.Tests/Sentirum.Agent.CustomerSupport.Tests.csproj" />
   </Folder>
 </Solution>

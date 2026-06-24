@@ -25,6 +25,7 @@ using Sentirum.Agent.Memory;
 using Sentirum.Agent.Memory.InMemory;
 using Sentirum.Agent.Workflows;
 using Sentirum.Agent.Workflows.HumanInTheLoop;
+using Sentirum.Agent.CustomerSupport.Sentiment;
 
 var zaiKey = Environment.GetEnvironmentVariable("ZAI_API_KEY");
 if (string.IsNullOrWhiteSpace(zaiKey))
@@ -75,7 +76,17 @@ builder.Services.AddSentirumAgent("discount-specialist", b => b
         "COMPENSATION: <percentage/credit>".
         """));
 
-// ── Build the triage workflow ────────────────────────────────────────
+// ── Tier-1 responder — opinionated SupportAgentBuilder ──────────────
+// Showcases the M8.5 vertical API: tier-1 persona, PII redaction, and
+// sentiment-based escalation all in one fluent chain.
+builder.Services.AddSentirumAgent("tier1-responder", b => b
+    .UseZAI("glm-4.6", apiKey: zaiKey)
+    .AsSupportAgent()
+        .WithTier1()
+        .WithPiiRedaction()
+        .WithSentimentBasedEscalation());
+
+// ── Build the triage workflow ────────────────────────────────
 builder.Services.AddSingleton<ISentirumWorkflow>(sp =>
 {
     var registry = sp.GetRequiredService<ISentirumAgentRegistry>();
@@ -111,6 +122,7 @@ app.MapPost("/support/ticket", async (
     ISentirumMemoryStore memory,
     ISupportTicketStore tickets,
     IApprovalChannel channel,
+    ISentimentAnalyzer sentiment,
     CancellationToken ct) =>
 {
     var ticketId = Guid.NewGuid().ToString("n")[..12];
@@ -139,6 +151,26 @@ app.MapPost("/support/ticket", async (
     var maxAmount = amounts.DefaultIfEmpty(0m).Max();
     var needsApproval = maxAmount > 100m;
 
+    // ── Step 3b: score customer sentiment (drives the responder's tone) ─
+    var sentimentScore = await sentiment.AnalyzeAsync(req.Description, ct);
+
+    // ── Step 3c: Tier-1 responder drafts a customer-facing reply ──────
+    // Built with the opinionated SupportAgentBuilder (tier-1 persona +
+    // PII redaction + sentiment-based escalation). A frustrated customer
+    // receives an empathy-first reply automatically.
+    var responder = agents.Find("tier1-responder")!;
+    var responderPrompt = $"""
+        Category: {category}
+        Recommendations: {string.Join(" | ", recommendations)}
+        Customer issue: {req.Description}
+        Draft a warm, concise customer-facing reply in the customer's language.
+        """;
+    var responderResult = await responder.RunAsync(
+        new SentirumSession(ticketId, responder.Id, null!, null),
+        new ChatMessage(ChatRole.User, responderPrompt),
+        ct);
+    var reply = responderResult.Messages.LastOrDefault()?.Text?.Trim() ?? string.Empty;
+
     var ticket = new SupportTicket
     {
         Id = ticketId,
@@ -148,6 +180,8 @@ app.MapPost("/support/ticket", async (
         Category = category,
         Recommendations = recommendations,
         MaxAmount = maxAmount,
+        Reply = reply,
+        Sentiment = sentimentScore,
         Status = needsApproval ? SupportTicketStatus.PendingApproval : SupportTicketStatus.Resolved,
         CreatedAt = createdAt,
     };
@@ -173,6 +207,8 @@ app.MapPost("/support/ticket", async (
         ticket.Category,
         ticket.Recommendations,
         ticket.MaxAmount,
+        ticket.Reply,
+        ticket.Sentiment,
         ticket.CreatedAt));
 });
 
@@ -190,6 +226,8 @@ app.MapGet("/support/ticket/{id}", (string id, ISupportTicketStore tickets) =>
         ticket.Category,
         ticket.Recommendations,
         ticket.MaxAmount,
+        ticket!.Reply,
+        ticket!.Sentiment,
         ticket.CreatedAt));
 });
 
@@ -250,6 +288,8 @@ app.MapPost("/support/approve/{id}", async (
         ticket.Category,
         ticket.Recommendations,
         ticket.MaxAmount,
+        ticket.Reply,
+        ticket.Sentiment,
         ticket.CreatedAt));
 });
 
@@ -263,6 +303,8 @@ app.MapGet("/support/tickets", (ISupportTicketStore tickets) =>
             t.Category,
             t.Recommendations,
             t.MaxAmount,
+            t.Reply,
+            t.Sentiment,
             t.CreatedAt))
         .ToList();
 
@@ -291,4 +333,6 @@ public sealed record TicketResponse(
     string Category,
     List<string> Recommendations,
     decimal MaxAmount,
+    string? Reply,
+    SentimentScore? Sentiment,
     DateTimeOffset CreatedAt);
