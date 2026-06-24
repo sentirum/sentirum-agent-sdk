@@ -6,8 +6,7 @@
 An opinionated, production-oriented **.NET SDK for building AI agents**, built
 on top of [Microsoft Agent Framework][maf] and [`Microsoft.Extensions.AI`][meai].
 
-> **Status:** M0–M8 complete. Current package version: `0.1.0-preview`.
-> Until v1.0, every minor preview release may break.
+> **Status:** M0–M9 complete. Current package version: `v1.0.0`.
 > See [`docs/adr/`](docs/adr/) for durable design decisions.
 
 ## Why Sentirum?
@@ -115,7 +114,7 @@ typed JSON DTOs.
 | **M6** | `net8.0` multi-targeting, `Testing` package, Observability, Security, AsyncLocal fixes | ✅ |
 | **M7** | ASP.NET Core hosting (SSE, A2A) via `Sentirum.Agent.AspNetCore` | ✅ |
 | **M8** | Customer Support Vertical + `09-CustomerSupport` | ✅ |
-| **M9** | Docs, integration tests, NuGet stable — `v1.0.0` | 📋 Planned |
+| **M9** | Docs, integration tests, NuGet stable — `v1.0.0` | ✅ |
 
 ## License
 

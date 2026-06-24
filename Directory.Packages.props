@@ -55,6 +55,17 @@
     <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.0" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.8" />
   </ItemGroup>
+  <ItemGroup Label="Security: transitive vulnerability overrides">
+    <!-- CVE-2025-6965 (SQLite < 3.50.2): EF Core 10.x is pinned to the vulnerable
+         SQLitePCLRaw 2.1.11, which bundles an outdated SQLite. The fix only ships
+         in the SQLitePCLRaw 3.x line (3.0.3 bundles SQLite 3.50.4 via SourceGear.sqlite3).
+         Microsoft has not backported this to the EF Core 10.x line (only 11.0-preview
+         references 3.x), so we override the transitive version here. This affects the
+         test projects only (Memory.Tests uses EF Core Sqlite); shipped packages do
+         not depend on SQLite. See GHSA-2m69-gcr7-jv3q. -->
+    <PackageVersion Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.3" />
+    <PackageVersion Include="SQLitePCLRaw.core" Version="3.0.3" />
+  </ItemGroup>
   <ItemGroup Label="SDK Tooling">
     <PackageVersion Include="MinVer" Version="7.0.0" />
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="10.0.300" />
