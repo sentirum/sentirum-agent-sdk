@@ -1,0 +1,10 @@
+[
+  {
+    "requestMessages": [{"role":"user","text":"hello"}],
+    "requestOptions": null,
+    "responseMessages": [{"role":"assistant","text":"Hello from A2A!"}],
+    "usage": {"inputTokenCount":5,"outputTokenCount":5,"totalTokenCount":10},
+    "recordedAt": "2026-06-08T12:00:00Z",
+    "label": "a2a-greeting"
+  }
+]

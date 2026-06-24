@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks></TargetFrameworks>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>Sentirum.Agent.Testing.Tests</RootNamespace>
+    <AssemblyName>Sentirum.Agent.Testing.Tests</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Sentirum.Agent.Testing\Sentirum.Agent.Testing.csproj" />
+    <ProjectReference Include="..\..\src\Sentirum.Agent.Observability\Sentirum.Agent.Observability.csproj" />
+    <ProjectReference Include="..\..\src\Sentirum.Agent.Security\Sentirum.Agent.Security.csproj" />
+    <ProjectReference Include="..\..\src\Sentirum.Agent.Abstractions\Sentirum.Agent.Abstractions.csproj" />
+    <ProjectReference Include="..\..\src\Sentirum.Agent.Core\Sentirum.Agent.Core.csproj" />
+  </ItemGroup>
+
+</Project>

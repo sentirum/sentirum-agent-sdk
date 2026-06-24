@@ -53,7 +53,7 @@ public sealed class KnowledgeBaseContextProvider : MessageAIContextProvider
     {
         ArgumentNullException.ThrowIfNull(context);
 
-        var query = ExtractLatestUserText(context.RequestMessages);
+        var query = ChatMessageQueries.LatestUserText(context.RequestMessages);
         if (string.IsNullOrWhiteSpace(query))
         {
             return Array.Empty<ChatMessage>();
@@ -86,24 +86,5 @@ public sealed class KnowledgeBaseContextProvider : MessageAIContextProvider
         {
             new ChatMessage(ChatRole.System, sb.ToString().TrimEnd()),
         };
-    }
-
-    private static string? ExtractLatestUserText(System.Collections.Generic.IEnumerable<ChatMessage>? messages)
-    {
-        if (messages is null)
-        {
-            return null;
-        }
-
-        ChatMessage? lastUser = null;
-        foreach (var m in messages)
-        {
-            if (m.Role == ChatRole.User)
-            {
-                lastUser = m;
-            }
-        }
-
-        return lastUser?.Text;
     }
 }

@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks></TargetFrameworks>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>Sentirum.Agent.Integration.Tests</RootNamespace>
+    <AssemblyName>Sentirum.Agent.Integration.Tests</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Sentirum.Agent.Testing\Sentirum.Agent.Testing.csproj" />
+    <ProjectReference Include="..\..\src\Sentirum.Agent.Core\Sentirum.Agent.Core.csproj" />
+    <ProjectReference Include="..\..\src\Sentirum.Agent.Workflows\Sentirum.Agent.Workflows.csproj" />
+    <ProjectReference Include="..\..\src\Sentirum.Agent.AspNetCore\Sentirum.Agent.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\src\Sentirum.Agent.CustomerSupport\Sentirum.Agent.CustomerSupport.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Fixtures\**\*.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

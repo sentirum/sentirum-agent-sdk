@@ -2,6 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <TargetFrameworks></TargetFrameworks>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>Sentirum.Samples.CustomerSupport</RootNamespace>
@@ -19,6 +21,7 @@
     <ProjectReference Include="..\..\src\Sentirum.Agent.Workflows.HumanInTheLoop\Sentirum.Agent.Workflows.HumanInTheLoop.csproj" />
     <ProjectReference Include="..\..\src\Sentirum.Agent.Memory.InMemory\Sentirum.Agent.Memory.InMemory.csproj" />
     <ProjectReference Include="..\..\src\Sentirum.Agent.Context\Sentirum.Agent.Context.csproj" />
+    <ProjectReference Include="..\..\src\Sentirum.Agent.CustomerSupport\Sentirum.Agent.CustomerSupport.csproj" />
   </ItemGroup>
 
 </Project>

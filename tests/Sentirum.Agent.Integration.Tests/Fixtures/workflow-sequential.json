@@ -1,0 +1,26 @@
+[
+  {
+    "requestMessages": [
+      { "role": "user", "text": "Step 1: greet" }
+    ],
+    "requestOptions": null,
+    "responseMessages": [
+      { "role": "assistant", "text": "Hello!" }
+    ],
+    "usage": { "inputTokenCount": 5, "outputTokenCount": 2, "totalTokenCount": 7 },
+    "recordedAt": "2026-06-08T12:00:00Z",
+    "label": "step1"
+  },
+  {
+    "requestMessages": [
+      { "role": "user", "text": "Step 2: ask name" }
+    ],
+    "requestOptions": null,
+    "responseMessages": [
+      { "role": "assistant", "text": "What is your name?" }
+    ],
+    "usage": { "inputTokenCount": 5, "outputTokenCount": 5, "totalTokenCount": 10 },
+    "recordedAt": "2026-06-08T12:00:00Z",
+    "label": "step2"
+  }
+]

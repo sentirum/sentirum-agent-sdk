@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Sentirum.Agent.Testing</RootNamespace>
+    <AssemblyName>Sentirum.Agent.Testing</AssemblyName>
+    <Description>Test utilities for Sentirum.Agent: recording/replay chat clients and a preconfigured test host.</Description>
+    <PackageId>Sentirum.Agent.Testing</PackageId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Sentirum.Agent.Abstractions\Sentirum.Agent.Abstractions.csproj" />
+    <ProjectReference Include="..\Sentirum.Agent.Core\Sentirum.Agent.Core.csproj" />
+    <ProjectReference Include="..\Sentirum.Agent.Hosting\Sentirum.Agent.Hosting.csproj" />
+    <PackageReference Include="Microsoft.Extensions.AI" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+  </ItemGroup>
+
+</Project>

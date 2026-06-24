@@ -1,0 +1,18 @@
+[
+  {
+    "requestMessages": [{"role":"user","text":"billing issue"}],
+    "requestOptions": null,
+    "responseMessages": [{"role":"assistant","text":"TRIAGE: billing"}],
+    "usage": {"inputTokenCount":5,"outputTokenCount":3,"totalTokenCount":8},
+    "recordedAt": "2026-06-08T12:00:00Z",
+    "label": "triage"
+  },
+  {
+    "requestMessages": [{"role":"user","text":"billing issue"}],
+    "requestOptions": null,
+    "responseMessages": [{"role":"assistant","text":"I'll help you with your billing issue."}],
+    "usage": {"inputTokenCount":5,"outputTokenCount":8,"totalTokenCount":13},
+    "recordedAt": "2026-06-08T12:00:00Z",
+    "label": "billing"
+  }
+]

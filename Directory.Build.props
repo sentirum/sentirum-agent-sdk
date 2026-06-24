@@ -1,7 +1,7 @@
 <Project>
 
   <PropertyGroup Label="TargetFramework">
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
     <LangVersion>latest</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
@@ -41,7 +41,6 @@
   <PropertyGroup Label="Versioning">
     <!-- MinVer manages version from git tags (v0.1.0-preview etc.) -->
     <MinVerTagPrefix>v</MinVerTagPrefix>
-    <MinVerDefaultPreReleaseIdentifiers>preview.0</MinVerDefaultPreReleaseIdentifiers>
   </PropertyGroup>
 
   <PropertyGroup Label="Output">

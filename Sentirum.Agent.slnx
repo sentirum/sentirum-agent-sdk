@@ -33,6 +33,13 @@
     <Project Path="src/Sentirum.Agent.Embeddings/Sentirum.Agent.Embeddings.csproj" />
     <Project Path="src/Sentirum.Agent.Workflows/Sentirum.Agent.Workflows.csproj" />
     <Project Path="src/Sentirum.Agent.Workflows.HumanInTheLoop/Sentirum.Agent.Workflows.HumanInTheLoop.csproj" />
+    <Project Path="src/Sentirum.Agent.Testing/Sentirum.Agent.Testing.csproj" />
+    <Project Path="src/Sentirum.Agent.Observability/Sentirum.Agent.Observability.csproj" />
+    <Project Path="src/Sentirum.Agent.Security/Sentirum.Agent.Security.csproj" />
+    <Project Path="src/Sentirum.Agent.Providers.AzureOpenAI/Sentirum.Agent.Providers.AzureOpenAI.csproj" />
+    <Project Path="src/Sentirum.Agent.CustomerSupport/Sentirum.Agent.CustomerSupport.csproj" />
+    <Project Path="src/Sentirum.Agent.Tools.Mcp/Sentirum.Agent.Tools.Mcp.csproj" />
+    <Project Path="src/Sentirum.Agent.AspNetCore/Sentirum.Agent.AspNetCore.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Sentirum.Agent.Abstractions.Tests/Sentirum.Agent.Abstractions.Tests.csproj" />
@@ -43,8 +50,10 @@
     <Project Path="tests/Sentirum.Agent.Memory.Tests/Sentirum.Agent.Memory.Tests.csproj" />
     <Project Path="tests/Sentirum.Agent.Context.Tests/Sentirum.Agent.Context.Tests.csproj" />
     <Project Path="tests/Sentirum.Agent.Workflows.Tests/Sentirum.Agent.Workflows.Tests.csproj" />
-    <Project Path="tests/Sentirum.Agent.Workflows.HumanInTheLoop.Tests/Sentirum.Agent.Workflows.HumanInTheLoop.Tests.csproj" />
-    <Project Path="tests/Sentirum.Agent.Embeddings.Tests/Sentirum.Agent.Embeddings.Tests.csproj" />
     <Project Path="tests/Sentirum.Agent.Providers.MiniMax.Tests/Sentirum.Agent.Providers.MiniMax.Tests.csproj" />
+    <Project Path="tests/Sentirum.Agent.Testing.Tests/Sentirum.Agent.Testing.Tests.csproj" />
+    <Project Path="tests/Sentirum.Agent.Integration.Tests/Sentirum.Agent.Integration.Tests.csproj" />
+    <Project Path="tests/Sentirum.Agent.Embeddings.Tests/Sentirum.Agent.Embeddings.Tests.csproj" />
+    <Project Path="tests/Sentirum.Agent.CustomerSupport.Tests/Sentirum.Agent.CustomerSupport.Tests.csproj" />
   </Folder>
 </Solution>
